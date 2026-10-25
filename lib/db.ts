@@ -18,14 +18,24 @@ export function getTursoClient(): Client {
   return _tursoClient;
 }
 
+function toPlain<T>(row: unknown): T {
+  if (!row || typeof row !== 'object') return row as T;
+  const plain: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(row)) {
+    plain[k] = typeof v === 'bigint' ? Number(v) : v;
+  }
+  return plain as T;
+}
+
 export async function queryAll<T = Record<string, unknown>>(sql: string, args: (string | number | boolean | null)[] = []): Promise<T[]> {
   if (isTurso()) {
     const client = getTursoClient();
     const res = await client.execute({ sql, args });
-    return res.rows as unknown as T[];
+    return res.rows.map(r => toPlain<T>(r));
   }
   const db = getDb();
-  return db.prepare(sql).all(...args) as T[];
+  const rows = db.prepare(sql).all(...args);
+  return rows.map(r => toPlain<T>(r));
 }
 
 export async function queryOne<T = Record<string, unknown>>(sql: string, args: (string | number | boolean | null)[] = []): Promise<T | null> {
@@ -33,22 +43,22 @@ export async function queryOne<T = Record<string, unknown>>(sql: string, args: (
     const client = getTursoClient();
     const res = await client.execute({ sql, args });
     if (!res.rows || res.rows.length === 0) return null;
-    return res.rows[0] as unknown as T;
+    return toPlain<T>(res.rows[0]);
   }
   const db = getDb();
   const row = db.prepare(sql).get(...args);
-  return (row as T) ?? null;
+  return row ? toPlain<T>(row) : null;
 }
 
-export async function execute(sql: string, args: (string | number | boolean | null)[] = []): Promise<{ lastInsertRowid?: number | bigint }> {
+export async function execute(sql: string, args: (string | number | boolean | null)[] = []): Promise<{ lastInsertRowid?: number }> {
   if (isTurso()) {
     const client = getTursoClient();
     const res = await client.execute({ sql, args });
-    return { lastInsertRowid: res.lastInsertRowid };
+    return { lastInsertRowid: res.lastInsertRowid !== undefined ? Number(res.lastInsertRowid) : undefined };
   }
   const db = getDb();
   const res = db.prepare(sql).run(...args);
-  return { lastInsertRowid: res.lastInsertRowid };
+  return { lastInsertRowid: res.lastInsertRowid !== undefined ? Number(res.lastInsertRowid) : undefined };
 }
 
 export function getDb(): Database.Database {
