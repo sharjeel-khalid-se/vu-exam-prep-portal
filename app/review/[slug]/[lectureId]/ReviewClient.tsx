@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { BookOpen, CheckCircle2, RotateCcw, ArrowLeft, ArrowRight, Lightbulb, Eye, HelpCircle } from 'lucide-react';
+import MathText from '@/app/MathText';
 
 interface Question {
   id: number;
@@ -67,9 +69,14 @@ export default function ReviewClient({
   if (questions.length === 0) {
     return (
       <div className="text-center text-slate-400 py-20">
-        <div className="text-5xl mb-4">📭</div>
+        <div className="w-16 h-16 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto mb-4 text-slate-400">
+          <BookOpen className="w-8 h-8" />
+        </div>
         <p>Is lecture mein short questions nahi hain abhi.</p>
-        <Link href={`/subjects/${subjectSlug}`} className="mt-4 inline-block text-emerald-400 hover:underline">← Back</Link>
+        <Link href={`/subjects/${subjectSlug}`} className="mt-4 inline-flex items-center gap-1.5 text-emerald-400 hover:underline">
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </Link>
       </div>
     );
   }
@@ -77,18 +84,22 @@ export default function ReviewClient({
   if (done) {
     return (
       <div className="max-w-lg mx-auto text-center">
-        <div className="text-6xl mb-4">✅</div>
+        <div className="w-16 h-16 rounded-full bg-emerald-950 border border-emerald-700/50 flex items-center justify-center mx-auto mb-4 text-emerald-400">
+          <CheckCircle2 className="w-8 h-8" />
+        </div>
         <h2 className="text-2xl font-bold text-white mb-4">Review Complete!</h2>
         <p className="text-slate-400 mb-8">Tamam {questions.length} short questions review ho gaye.</p>
         <div className="flex gap-3 justify-center">
           <button
             onClick={() => { setCurrent(0); setFlipped(false); setDone(false); }}
-            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-semibold"
+            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-semibold inline-flex items-center gap-2"
           >
-            🔄 Again
+            <RotateCcw className="w-4 h-4" />
+            <span>Again</span>
           </button>
-          <Link href={`/subjects/${subjectSlug}`} className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-white font-semibold">
-            ← Back
+          <Link href={`/subjects/${subjectSlug}`} className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl text-white font-semibold inline-flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back</span>
           </Link>
         </div>
       </div>
@@ -100,7 +111,19 @@ export default function ReviewClient({
       {/* Progress */}
       <div className="flex justify-between text-sm text-slate-500 mb-2">
         <span>Card {current + 1} / {questions.length}</span>
-        <span className="text-slate-400">{flipped ? 'Jawab 👀' : 'Sawal ❓'}</span>
+        <span className="text-slate-400 flex items-center gap-1">
+          {flipped ? (
+            <>
+              <Eye className="w-4 h-4 text-emerald-400" />
+              <span>Jawab</span>
+            </>
+          ) : (
+            <>
+              <HelpCircle className="w-4 h-4 text-purple-400" />
+              <span>Sawal</span>
+            </>
+          )}
+        </span>
       </div>
       <div className="w-full bg-slate-800 rounded-full h-2 mb-6">
         <div
@@ -129,7 +152,9 @@ export default function ReviewClient({
             style={{ backfaceVisibility: 'hidden' }}
           >
             <div className="text-xs text-slate-500 mb-3 uppercase font-mono">Question (tap to flip)</div>
-            <p className="text-white text-xl font-semibold leading-relaxed">{q?.stem}</p>
+            <div className="text-white text-xl font-semibold leading-relaxed">
+              <MathText text={q?.stem || ''} />
+            </div>
           </div>
 
           {/* Back — Answer */}
@@ -138,7 +163,9 @@ export default function ReviewClient({
             style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
           >
             <div className="text-xs text-emerald-500 mb-3 uppercase font-mono">Answer</div>
-            <p className="text-emerald-100 text-base leading-relaxed">{q?.correct}</p>
+            <div className="text-emerald-100 text-base leading-relaxed">
+              <MathText text={q?.correct || ''} />
+            </div>
           </div>
         </div>
       </div>
@@ -149,8 +176,11 @@ export default function ReviewClient({
       {flipped && (
         <div className="space-y-3 mb-4">
           {q.explanation && (
-            <div className="rounded-xl border border-blue-700/50 bg-blue-900/20 p-4 text-blue-200 text-sm">
-              <strong className="text-blue-400">💡 Note:</strong> {q.explanation}
+            <div className="rounded-xl border border-blue-700/50 bg-blue-900/20 p-4 text-blue-200 text-sm flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-blue-400">Note:</strong> <MathText text={q.explanation} />
+              </div>
             </div>
           )}
           {q.urdu_answer && (
@@ -159,7 +189,7 @@ export default function ReviewClient({
                 onClick={(e) => { e.stopPropagation(); setShowUrdu(u => !u); }}
                 className="text-xs text-amber-400 hover:text-amber-300 underline transition-colors"
               >
-                {showUrdu ? 'اردو چھپائیں' : 'اردو میں دیکھیں 🇵🇰'}
+                {showUrdu ? 'اردو چھپائیں' : 'اردو میں دیکھیں'}
               </button>
               {showUrdu && (
                 <div className="mt-2 rounded-xl border border-amber-700/50 bg-amber-900/20 p-4 text-amber-200 text-sm text-right font-serif leading-relaxed" dir="rtl">
@@ -176,15 +206,17 @@ export default function ReviewClient({
         <button
           onClick={handlePrev}
           disabled={current === 0}
-          className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white font-semibold transition-colors"
+          className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white font-semibold transition-colors inline-flex items-center justify-center gap-1.5"
         >
-          ← Prev
+          <ArrowLeft className="w-4 h-4" />
+          <span>Prev</span>
         </button>
         <button
           onClick={handleNext}
-          className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors"
+          className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors inline-flex items-center justify-center gap-1.5"
         >
-          {current + 1 >= questions.length ? '✅ Done' : 'Next →'}
+          <span>{current + 1 >= questions.length ? 'Done' : 'Next'}</span>
+          {current + 1 >= questions.length ? <CheckCircle2 className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
         </button>
       </div>
     </div>

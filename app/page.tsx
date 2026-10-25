@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import HomeSearch from './HomeSearch';
+import { Check } from 'lucide-react';
 
 interface Subject {
   id: number;
@@ -20,73 +22,54 @@ async function getSubjects(): Promise<Subject[]> {
   }
 }
 
-const subjectColors: Record<string, string> = {
-  cs403: 'from-blue-600 to-cyan-600',
-  default: 'from-emerald-600 to-teal-600',
-};
-
-const subjectIcons: Record<string, string> = {
-  cs403: '🗄️',
-  default: '📘',
-};
-
 export default async function HomePage() {
   const subjects = await getSubjects();
 
   return (
-    <div>
-      {/* Hero */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-extrabold mb-3 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-          VU Exam Prep Portal
-        </h1>
-        <p className="text-slate-400 text-lg max-w-xl mx-auto">
-          Lecture-wise MCQs, Short Questions, Math & Code — sab kuch ek jagah 🚀
-        </p>
-      </div>
-
-      {/* Stats bar */}
-      <div className="grid grid-cols-3 gap-4 mb-10">
-        {[
-          { label: 'Subjects', value: subjects.length, icon: '📚' },
-          { label: 'Lectures', value: subjects.length > 0 ? '1+' : '0', icon: '📖' },
-          { label: 'Questions', value: subjects.length > 0 ? '13+' : '0', icon: '❓' },
-        ].map(stat => (
-          <div key={stat.label} className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
-            <div className="text-2xl mb-1">{stat.icon}</div>
-            <div className="text-2xl font-bold text-white">{stat.value}</div>
-            <div className="text-xs text-slate-500">{stat.label}</div>
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10">
+      {/* Hero & Metrics Row (2-column layout matching design) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-12">
+        {/* Left Column: Hero Copy & Search Input */}
+        <div className="lg:col-span-8 space-y-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
+            <Check className="w-3.5 h-3.5" /> Official VU exam pattern
           </div>
-        ))}
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 leading-tight">
+            Virtual University Exam Portal
+          </h1>
+          <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl">
+            Comprehensive preparation platform featuring lecture-wise practice, timed MCQ quizzes, subjective questions with rich text input, and full Mid-Term & Final-Term exam simulations.
+          </p>
+        </div>
+
+        {/* Right Column: Clean Stat Badges Card */}
+        <div className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
+          <div className="flex items-baseline gap-3">
+            <span className="text-4xl font-black text-slate-900">{subjects.length}</span>
+            <div>
+              <div className="text-sm font-bold text-slate-800">Courses</div>
+              <div className="text-xs text-slate-400">Open in guest mode</div>
+            </div>
+          </div>
+          <div className="flex items-baseline gap-3">
+            <span className="text-4xl font-black text-slate-900">{subjects.length > 0 ? '6+' : '0'}</span>
+            <div>
+              <div className="text-sm font-bold text-slate-800">Lectures</div>
+              <div className="text-xs text-slate-400">Modular topic breakdowns</div>
+            </div>
+          </div>
+          <div className="flex items-baseline gap-3">
+            <span className="text-4xl font-black text-slate-900">30+</span>
+            <div>
+              <div className="text-sm font-bold text-slate-800">Question bank</div>
+              <div className="text-xs text-slate-400">MCQs, short & long questions</div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Subjects Grid */}
-      {subjects.length === 0 ? (
-        <div className="text-center text-slate-500 py-20">
-          <div className="text-5xl mb-4">📭</div>
-          <p>Loading subjects... (Server starting up)</p>
-          <p className="text-sm mt-2">Refresh karein agar data nazar na aaye.</p>
-        </div>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {subjects.map((subject) => (
-            <Link
-              key={subject.id}
-              href={`/subjects/${subject.slug}`}
-              className="group relative rounded-2xl border border-slate-800 bg-slate-900 p-6 hover:border-slate-600 transition-all hover:shadow-xl hover:shadow-black/30 hover:-translate-y-0.5"
-            >
-              <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${subjectColors[subject.slug] ?? subjectColors.default} opacity-0 group-hover:opacity-10 transition-opacity`} />
-              <div className="text-4xl mb-3">{subjectIcons[subject.slug] ?? subjectIcons.default}</div>
-              <div className="text-xs font-mono text-emerald-400 mb-1">{subject.code}</div>
-              <h2 className="text-lg font-bold text-white mb-2">{subject.name}</h2>
-              <p className="text-sm text-slate-400 line-clamp-2">{subject.description}</p>
-              <div className="mt-4 text-xs text-slate-500 group-hover:text-emerald-400 transition-colors">
-                Start Studying →
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      {/* Interactive Live Search & Course Catalog */}
+      <HomeSearch initialSubjects={subjects} />
     </div>
   );
 }

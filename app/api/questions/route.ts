@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { seedAllCourses } from '@/lib/seed';
 
 export async function GET(req: Request) {
   try {
+    seedAllCourses();
     const { searchParams } = new URL(req.url);
     const lectureId = searchParams.get('lecture_id');
     const type = searchParams.get('type');

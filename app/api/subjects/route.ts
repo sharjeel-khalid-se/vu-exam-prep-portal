@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { seedCS403Lecture1 } from '@/lib/seed';
+import { seedAllCourses } from '@/lib/seed';
 
 export async function GET() {
   try {
-    seedCS403Lecture1();
+    seedAllCourses();
     const db = getDb();
-    const subjects = db.prepare(`SELECT * FROM subjects ORDER BY name`).all();
+    const subjects = db.prepare(`SELECT * FROM subjects ORDER BY code`).all();
     return NextResponse.json({ subjects });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';

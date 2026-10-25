@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { seedAllCourses } from '@/lib/seed';
 
 export async function GET(
   _req: Request,
@@ -7,6 +8,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
+    seedAllCourses();
     const db = getDb();
     const subject = db.prepare(`SELECT * FROM subjects WHERE slug = ?`).get(slug);
     if (!subject) return NextResponse.json({ error: 'Not found' }, { status: 404 });
