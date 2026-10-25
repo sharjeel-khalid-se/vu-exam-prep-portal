@@ -54,7 +54,7 @@ export default function HomeSearch({ initialSubjects }: { initialSubjects: Subje
     return () => clearTimeout(timer);
   }, [query, initialSubjects]);
 
-  const quickPills = ['CS403', 'CS504', 'CS201', 'CS301', 'Lecture 1', 'Normalization'];
+  const quickPills = ['CS403', 'CS504', 'MGT501', 'STA301', 'MTH202', 'Lecture 1'];
 
   return (
     <div>

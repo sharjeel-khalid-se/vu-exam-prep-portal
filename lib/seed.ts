@@ -283,36 +283,7 @@ export function seedAllCourses() {
 
   // 1. CS403 lectures are seeded lecture-by-lecture below
 
-  // CS403P: Database Management Systems Practical
-  let cs403p = db.prepare(`SELECT id FROM subjects WHERE slug = 'cs403p'`).get() as { id: number } | undefined;
-  if (!cs403p) {
-    const res = db.prepare(`
-      INSERT INTO subjects (name, slug, code, description)
-      VALUES (?, ?, ?, ?)
-    `).run(
-      'Database Management Systems Practical',
-      'cs403p',
-      'CS403P',
-      'Hands-on lab exercises, schema creation, SQL query design, relational constraints, and database application programming — Virtual University'
-    );
-    cs403p = { id: Number(res.lastInsertRowid) };
-  }
-
-  // CS304P: Object Oriented Programming (Practical)
-  let cs304p = db.prepare(`SELECT id FROM subjects WHERE slug = 'cs304p'`).get() as { id: number } | undefined;
-  if (!cs304p) {
-    const res = db.prepare(`
-      INSERT INTO subjects (name, slug, code, description)
-      VALUES (?, ?, ?, ?)
-    `).run(
-      'Object Oriented Programming (Practical)',
-      'cs304p',
-      'CS304P',
-      'Hands-on C++ programming, classes, objects, inheritance, polymorphism, encapsulation, memory management, and OOP software development — Virtual University'
-    );
-    cs304p = { id: Number(res.lastInsertRowid) };
-  }
-
+  /* CS403P & CS304P removed */
   // 2. CS504: Software Engineering - I
   let cs504 = db.prepare(`SELECT id FROM subjects WHERE slug = 'cs504'`).get() as { id: number } | undefined;
   if (!cs504) {
@@ -2485,56 +2456,7 @@ Every functional transaction is evaluated by its primary purpose from the user's
     }
   }
 
-  const cs201 = db.prepare(`SELECT id FROM subjects WHERE slug = 'cs201'`).get();
-  if (!cs201) {
-    const res = db.prepare(`
-      INSERT INTO subjects (name, slug, code, description)
-      VALUES ('Introduction to Programming', 'cs201', 'CS201', 'Structured programming logic, control structures, and algorithms using modern C++ Ã¢â‚¬â€ Virtual University')
-    `).run();
-    const sId = res.lastInsertRowid;
-    const lRes = db.prepare(`INSERT INTO lectures (subject_id, number, title) VALUES (?, 1, 'C++ Basics, Operators & Control Structures')`).run(sId);
-    const lId = lRes.lastInsertRowid;
-    db.prepare(`
-      INSERT INTO questions (lecture_id, type, stem, options, correct, explanation, marks, time_minutes)
-      VALUES (?, 'mcq', 'Which standard header file must be included in C++ to utilize cout and cin streams?', ?, 'c', '<iostream> defines the standard input/output stream objects in C++.', 1, 1)
-    `).run(lId, JSON.stringify({ a: '<stdlib.h>', b: '<conio.h>', c: '<iostream>', d: '<iomanip>' }));
-    db.prepare(`
-      INSERT INTO questions (lecture_id, type, stem, correct, explanation, marks, time_minutes)
-      VALUES (?, 'short', 'Explain the operational distinction between while loop and do-while loop in C++.', ?, 'while tests the condition before iteration; do-while executes at least once before testing.', 3, 3)
-    `).run(lId, `1. while Loop (Entry-Controlled):
-Ã¢â‚¬Â¢ Evaluates the test condition BEFORE executing the body.
-Ã¢â‚¬Â¢ If the condition evaluates to false initially, the loop body executes zero times.
-
-2. do-while Loop (Exit-Controlled):
-Ã¢â‚¬Â¢ Executes the loop body FIRST, then evaluates the test condition at the bottom.
-Ã¢â‚¬Â¢ The body is guaranteed to execute at least once regardless of initial condition evaluation.`);
-  }
-
-  // 4. CS301: Data Structures
-  const cs301 = db.prepare(`SELECT id FROM subjects WHERE slug = 'cs301'`).get();
-  if (!cs301) {
-    const res = db.prepare(`
-      INSERT INTO subjects (name, slug, code, description)
-      VALUES ('Data Structures', 'cs301', 'CS301', 'Abstract Data Types, Linked Lists, Stacks, Queues, Binary Trees, and Graphs Ã¢â‚¬â€ Virtual University')
-    `).run();
-    const sId = res.lastInsertRowid;
-    const lRes = db.prepare(`INSERT INTO lectures (subject_id, number, title) VALUES (?, 1, 'Introduction to ADTs, Arrays & Linked Lists')`).run(sId);
-    const lId = lRes.lastInsertRowid;
-    db.prepare(`
-      INSERT INTO questions (lecture_id, type, stem, options, correct, explanation, marks, time_minutes)
-      VALUES (?, 'mcq', 'Which access discipline is adhered to by the Stack data structure?', ?, 'a', 'Stacks follow Last-In, First-Out (LIFO) discipline where push and pop occur at the top.', 1, 1)
-    `).run(lId, JSON.stringify({ a: 'LIFO (Last In First Out)', b: 'FIFO (First In First Out)', c: 'Random Access', d: 'Priority First' }));
-    db.prepare(`
-      INSERT INTO questions (lecture_id, type, stem, correct, explanation, marks, time_minutes)
-      VALUES (?, 'short', 'Define an Abstract Data Type (ADT) and provide two canonical examples.', ?, 'An ADT defines data and operations mathematically without specifying implementation details.', 3, 3)
-    `).run(lId, `Definition:
-An Abstract Data Type (ADT) is a mathematical specification of a data collection characterized by its operations and behaviors from the user perspective, completely independent of physical implementation and memory representation.
-
-Canonical Examples:
-1. Stack ADT: Defined by Push(), Pop(), and Top() operations with LIFO discipline.
-2. Queue ADT: Defined by Enqueue() and Dequeue() operations with FIFO discipline.`);
-  }
-
+  /* CS201 & CS301 removed */
   // 5. MGT201: Financial Management
   let mgt201 = db.prepare(`SELECT id FROM subjects WHERE slug = 'mgt201'`).get() as { id: number } | undefined;
   if (!mgt201) {
