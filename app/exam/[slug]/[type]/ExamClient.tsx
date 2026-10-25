@@ -7,6 +7,7 @@ import {
   Flag, ChevronsLeft, ChevronsRight, ArrowLeft, ArrowRight,
   Save, Check, X, Lightbulb, User, GraduationCap, ClipboardList,
   AlertTriangle, CheckCircle2, Undo, Redo, Clock,
+  Layers, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import MathText from '@/app/MathText';
 
@@ -209,6 +210,7 @@ export default function ExamClient({
 
   const [flagged,   setFlagged]   = useState<Set<string>>(new Set());
   const [submitted, setSubmitted] = useState(false);
+  const [showMobileSummary, setShowMobileSummary] = useState(false);
 
   // Overall paper timer in seconds (60 min = 3600s, 90 min = 5400s)
   const [totalPaperSeconds, setTotalPaperSeconds] = useState(3600);
@@ -1013,48 +1015,64 @@ export default function ExamClient({
     <div className="h-screen w-screen bg-[#0f172a] flex flex-col select-none overflow-hidden" style={{ fontFamily: 'Arial, sans-serif' }}>
 
       {/* ══ TOP HEADER ══════════════════════════════════════════ */}
-      <header className="bg-[#1a1a2e] border-b border-slate-700 h-14 flex items-center px-4 flex-shrink-0">
-        <div className="text-white font-bold text-sm flex-1 truncate">
-          <div>{subjectCode} ({subjectName})</div>
-          <div className="text-[10px] font-normal text-slate-400 flex items-center gap-1">
+      <header className="bg-[#1a1a2e] border-b border-slate-700 h-14 flex items-center px-3 sm:px-4 flex-shrink-0 justify-between gap-2">
+        <div className="text-white font-bold text-xs sm:text-sm truncate min-w-0 pr-1">
+          <div className="truncate">{subjectCode} ({subjectName})</div>
+          <div className="text-[10px] font-normal text-slate-400 flex items-center gap-1 truncate">
             {examType === 'finalterm'
-              ? <><GraduationCap className="w-3 h-3" /> Final-Term</>
-              : <><FileText className="w-3 h-3" /> Mid-Term</>
-            } — Syllabus: {syllabusLabel || (examType === 'finalterm' ? 'Lectures 21–45' : 'Lectures 1–20')}
+              ? <><GraduationCap className="w-3 h-3 shrink-0" /> Final-Term</>
+              : <><FileText className="w-3 h-3 shrink-0" /> Mid-Term</>
+            } — {syllabusLabel || (examType === 'finalterm' ? 'Lectures 21–45' : 'Lectures 1–20')}
           </div>
         </div>
         {/* Circular Overall Paper Timer (centered) */}
-        <div className="flex justify-center flex-1">
+        <div className="flex justify-center shrink-0">
           <CircularTimer remainingSeconds={remainingSeconds} totalSeconds={totalPaperSeconds} />
         </div>
         {/* User info */}
-        <div className="flex items-center gap-3 flex-1 justify-end">
-          <div className="text-right text-xs text-slate-400">
-            Login Time {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-end">
+          <div className="text-right text-[11px] text-slate-400 hidden sm:block">
+            Login {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </div>
-          <div className="text-xs font-bold text-white leading-tight text-right">
+          <div className="text-xs font-bold text-white leading-tight text-right hidden sm:block">
             <div>GUEST</div><div>GUEST</div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-slate-600 border-2 border-slate-500 flex items-center justify-center overflow-hidden">
-            <User className="w-5 h-5 text-slate-300" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-600 border-2 border-slate-500 flex items-center justify-center overflow-hidden">
+            <User className="w-4 h-4 sm:w-5 sm:h-5 text-slate-300" />
           </div>
         </div>
       </header>
 
 
       {/* ══ QUESTION INFO BAR ════════════════════════════════════ */}
-      <div className="bg-[#6d28d9] flex items-center justify-between px-4 py-2">
-        <span className="text-white font-semibold text-sm">
-          Question No : {qNumber} of {totalQAll}
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-white text-sm">
-            Marks: {currentMarks} &nbsp;
-            <span className="text-yellow-300">(Time {currentTime} Min)</span>
+      <div className="bg-[#6d28d9] flex items-center justify-between px-3 sm:px-4 py-2 gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <span className="text-white font-semibold text-xs sm:text-sm whitespace-nowrap">
+            Q: {qNumber}/{totalQAll}
+          </span>
+          <span className="text-[10px] sm:text-xs bg-purple-900/60 px-1.5 py-0.5 rounded uppercase font-bold text-purple-200">
+            {section}
+          </span>
+        </div>
+
+        {/* Mobile Grid Toggle Pill */}
+        <button
+          type="button"
+          onClick={() => setShowMobileSummary(true)}
+          className="md:hidden flex items-center gap-1 bg-purple-950/80 hover:bg-purple-900 border border-purple-400/60 text-white px-2 py-1 rounded-md text-[11px] font-bold shadow-xs active:scale-95 transition-all"
+        >
+          <Layers className="w-3.5 h-3.5 text-cyan-300" />
+          <span>Grid ({totalAttempted}/{totalQAll})</span>
+        </button>
+
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <span className="text-white text-xs sm:text-sm font-medium whitespace-nowrap">
+            {currentMarks} M <span className="text-yellow-300">({currentTime}m)</span>
           </span>
           <button
             onClick={() => setFlagged(f => { const n = new Set(f); n.has(currentKey) ? n.delete(currentKey) : n.add(currentKey); return n; })}
             className={`w-7 h-7 rounded-full flex items-center justify-center font-extrabold text-sm transition-colors ${flagged.has(currentKey) ? 'bg-yellow-400 text-black' : 'bg-yellow-500/40 text-yellow-300 hover:bg-yellow-400 hover:text-black'}`}
+            title="Flag question"
           >!</button>
         </div>
       </div>
@@ -1244,8 +1262,8 @@ export default function ExamClient({
           )}
         </div>
 
-        {/* ── RIGHT SIDEBAR ───────────────────────────────────── */}
-        <div className="w-44 min-h-0 bg-[#1e1b4b] border-l border-purple-900 flex flex-col text-xs flex-shrink-0">
+        {/* ── RIGHT SIDEBAR (Desktop: Visible | Mobile: Hidden) ───────────────────────────────────── */}
+        <div className="hidden md:flex w-44 min-h-0 bg-[#1e1b4b] border-l border-purple-900 flex-col text-xs flex-shrink-0">
           <div className="bg-[#4c1d95] px-3 py-2 text-white font-semibold text-sm">Summary</div>
 
           {/* Question grid — MCQs */}
@@ -1353,48 +1371,186 @@ export default function ExamClient({
             <div className="flex justify-between text-slate-300"><span>Total</span><span className="text-white font-bold">{totalQ}</span></div>
           </div>
         </div>
+
+        {/* MOBILE SUMMARY DRAWER OVERLAY */}
+        {showMobileSummary && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end md:hidden">
+            <div className="w-[85%] max-w-xs h-full bg-[#1e1b4b] text-white flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
+              <div className="bg-[#4c1d95] px-4 py-3 flex items-center justify-between shrink-0">
+                <span className="font-bold text-sm flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-cyan-300" />
+                  <span>Exam Question Summary</span>
+                </span>
+                <button
+                  onClick={() => setShowMobileSummary(false)}
+                  className="p-1 rounded-md hover:bg-purple-800 text-purple-200 active:scale-95"
+                  title="Close Summary"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto flex-1 p-3 space-y-3">
+                {/* MCQs */}
+                {mcqs.length > 0 && (
+                  <div>
+                    <div className="text-purple-400 font-bold text-[11px] uppercase mb-1.5 flex items-center justify-between">
+                      <span>MCQs</span>
+                      <span className="text-slate-400">{mcqs.length} questions</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {mcqs.map((_, i) => {
+                        const k = `mcq-${i}`;
+                        const isCur    = section === 'mcq' && currentMcq === i;
+                        const isSaved  = i in savedMcq;
+                        const isStaged = i in stagedMcq && stagedMcq[i] !== savedMcq[i];
+                        const isFlag   = flagged.has(k);
+                        return (
+                          <button key={i}
+                            onClick={() => {
+                              handleSelectSidebarQuestion('mcq', i);
+                              setShowMobileSummary(false);
+                            }}
+                            className={`rounded-full w-full aspect-square font-bold transition-all border-2 text-xs flex items-center justify-center ${
+                              isCur    ? 'bg-teal-500 border-teal-400 text-white scale-105 shadow-md' :
+                              isFlag   ? 'bg-yellow-400 border-yellow-300 text-black' :
+                              isSaved  ? 'bg-emerald-600 border-emerald-500 text-white' :
+                              isStaged ? 'bg-amber-500 border-amber-400 text-black animate-pulse' :
+                                         'bg-[#312e81] border-purple-600 text-purple-200'
+                            }`}>
+                            {String(i + 1).padStart(2, '0')}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Short Qs */}
+                {shorts.length > 0 && (
+                  <div>
+                    <div className="text-emerald-400 font-bold text-[11px] uppercase mb-1.5 flex items-center justify-between">
+                      <span>Short Questions</span>
+                      <span className="text-slate-400">{shorts.length} questions</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {shorts.map((_, i) => {
+                        const k = `short-${i}`;
+                        const isCur    = section === 'short' && currentSubj === i;
+                        const isSaved  = !!savedSubj[k] || subjRevealed[k];
+                        const isStaged = !!stagedSubj[k] && stagedSubj[k] !== (savedSubj[k] ?? '');
+                        const isFlag   = flagged.has(k);
+                        return (
+                          <button key={i}
+                            onClick={() => {
+                              handleSelectSidebarQuestion('short', i);
+                              setShowMobileSummary(false);
+                            }}
+                            className={`rounded-full w-full aspect-square font-bold transition-all border-2 text-xs flex items-center justify-center ${
+                              isCur    ? 'bg-teal-500 border-teal-400 text-white scale-105 shadow-md' :
+                              isFlag   ? 'bg-yellow-400 border-yellow-300 text-black' :
+                              isSaved  ? 'bg-emerald-600 border-emerald-500 text-white' :
+                              isStaged ? 'bg-amber-500 border-amber-400 text-black animate-pulse' :
+                                         'bg-[#312e81] border-purple-600 text-purple-200'
+                            }`}>
+                            {String(mcqs.length + i + 1).padStart(2, '0')}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Long Qs */}
+                {longs.length > 0 && (
+                  <div>
+                    <div className="text-cyan-400 font-bold text-[11px] uppercase mb-1.5 flex items-center justify-between">
+                      <span>Long Questions</span>
+                      <span className="text-slate-400">{longs.length} questions</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {longs.map((_, i) => {
+                        const k = `long-${i}`;
+                        const isCur    = section === 'long' && currentSubj === i;
+                        const isSaved  = !!savedSubj[k] || subjRevealed[k];
+                        const isStaged = !!stagedSubj[k] && stagedSubj[k] !== (savedSubj[k] ?? '');
+                        const isFlag   = flagged.has(k);
+                        return (
+                          <button key={i}
+                            onClick={() => {
+                              handleSelectSidebarQuestion('long', i);
+                              setShowMobileSummary(false);
+                            }}
+                            className={`rounded-full w-full aspect-square font-bold transition-all border-2 text-xs flex items-center justify-center ${
+                              isCur    ? 'bg-teal-500 border-teal-400 text-white scale-105 shadow-md' :
+                              isFlag   ? 'bg-yellow-400 border-yellow-300 text-black' :
+                              isSaved  ? 'bg-emerald-600 border-emerald-500 text-white' :
+                              isStaged ? 'bg-amber-500 border-amber-400 text-black animate-pulse' :
+                                         'bg-[#312e81] border-purple-600 text-purple-200'
+                            }`}>
+                            {String(mcqs.length + shorts.length + i + 1).padStart(2, '0')}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="border-t border-purple-800 p-4 space-y-2 shrink-0 text-xs">
+                <div className="text-2xl font-black text-white">{pctAttempted}%</div>
+                <div className="flex justify-between text-slate-300"><span>Attempted</span><span className="text-cyan-400 font-bold">{totalAttempted}</span></div>
+                <div className="flex justify-between text-slate-300"><span>Flagged</span><span className="text-yellow-400 font-bold">{flagged.size}</span></div>
+                <div className="flex justify-between text-slate-300"><span>Total Questions</span><span className="text-white font-bold">{totalQ}</span></div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ══ BOTTOM BAR ══════════════════════════════════════════ */}
-      <div className="bg-[#1a1a2e] border-t border-slate-700 h-14 px-4 flex items-center justify-between gap-2 flex-shrink-0 z-20">
+      {/* ══ BOTTOM BAR (RESPONSIVE FOR MOBILE) ══════════════════════════════════════════ */}
+      <div className="bg-[#1a1a2e] border-t border-slate-700 min-h-[3.5rem] py-1.5 px-2 sm:px-4 flex items-center justify-between gap-1.5 sm:gap-2 flex-shrink-0 z-20">
         <button onClick={finishExam}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-semibold text-sm transition-colors">
+          className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold text-xs sm:text-sm transition-colors shrink-0">
           <ClipboardList className="w-4 h-4" />
-          Finish Exam
+          <span className="hidden sm:inline">Finish Exam</span>
+          <span className="sm:hidden">Finish</span>
         </button>
 
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <button
             onClick={() => setFlagged(f => { const n = new Set(f); n.has(currentKey) ? n.delete(currentKey) : n.add(currentKey); return n; })}
-            className={`flex items-center gap-1 px-3 py-2 rounded font-semibold text-sm transition-colors ${flagged.has(currentKey) ? 'bg-yellow-400 text-black' : 'bg-[#6d28d9] hover:bg-purple-600 text-white'}`}>
-            <Flag className="w-4 h-4" />
-            Flag
+            className={`flex items-center gap-1 px-2 sm:px-3 py-2 rounded font-semibold text-xs sm:text-sm transition-colors ${flagged.has(currentKey) ? 'bg-yellow-400 text-black' : 'bg-[#6d28d9] hover:bg-purple-600 text-white'}`}
+            title="Flag question">
+            <Flag className="w-3.5 h-3.5" />
+            <span className="hidden xs:inline">Flag</span>
           </button>
           <button onClick={handleFirst}
-            className="flex items-center gap-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-semibold text-sm transition-colors">
+            className="hidden sm:flex items-center gap-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-semibold text-sm transition-colors">
             <ChevronsLeft className="w-4 h-4" />
             First
           </button>
           <button onClick={handleLast}
-            className="flex items-center gap-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-semibold text-sm transition-colors">
+            className="hidden sm:flex items-center gap-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-semibold text-sm transition-colors">
             Last
             <ChevronsRight className="w-4 h-4" />
           </button>
           <button onClick={goPrev}
-            className="flex items-center gap-1 px-3 py-2 bg-[#6d28d9] hover:bg-purple-600 text-white rounded font-semibold text-sm transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Previous
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-2 bg-[#6d28d9] hover:bg-purple-600 text-white rounded font-bold text-xs sm:text-sm transition-colors shrink-0">
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span>Prev</span>
           </button>
           <button onClick={goNext}
-            className="flex items-center gap-1 px-3 py-2 bg-[#6d28d9] hover:bg-purple-600 text-white rounded font-semibold text-sm transition-colors">
-            Next
-            <ArrowRight className="w-4 h-4" />
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-2 bg-[#6d28d9] hover:bg-purple-600 text-white rounded font-bold text-xs sm:text-sm transition-colors shrink-0">
+            <span>Next</span>
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
         <button
           onClick={handleSave}
-          className={`px-5 py-2 rounded font-bold text-sm transition-all shadow-xs flex items-center gap-1.5 ${
+          className={`px-3.5 sm:px-5 py-2 rounded font-bold text-xs sm:text-sm transition-all shadow-xs flex items-center gap-1.5 shrink-0 ${
             isCurrentUnsaved()
               ? 'bg-amber-500 hover:bg-amber-400 text-black animate-pulse ring-2 ring-amber-300 ring-offset-1 ring-offset-[#1a1a2e]'
               : 'bg-teal-600 hover:bg-teal-500 text-white'
@@ -1402,7 +1558,7 @@ export default function ExamClient({
           title="Save your answer"
         >
           <Save className="w-4 h-4" />
-          {isCurrentUnsaved() ? 'Save Answer *' : 'Save'}
+          <span>{isCurrentUnsaved() ? 'Save *' : 'Save'}</span>
         </button>
       </div>
     </div>

@@ -35,6 +35,8 @@ import {
   PartyPopper,
   FileText,
   Clock,
+  Layers,
+  ChevronLeft,
 } from 'lucide-react';
 import MathText from '@/app/MathText';
 
@@ -298,6 +300,7 @@ export default function QuizClient({
   // Alerts
   const [saveWarning, setSaveWarning] = useState<string | null>(null);
   const [saveNotification, setSaveNotification] = useState<string | null>(null);
+  const [showMobileSummary, setShowMobileSummary] = useState(false);
 
   // Results review filter: 'all' | 'incorrect' | 'correct'
   const [reviewFilter, setReviewFilter] = useState<'all' | 'incorrect' | 'correct'>('all');
@@ -1156,16 +1159,16 @@ export default function QuizClient({
   return (
     <div className="h-screen w-screen bg-[#0f172a] flex flex-col select-none overflow-hidden">
       {/* ── 1. TOP HEADER ── */}
-      <header className="bg-[#1a1a2e] text-white px-4 py-2 flex items-center justify-between border-b border-slate-700 shrink-0">
-        <div>
-          <div className="text-xs text-slate-400 font-medium">{subjectCode} · {subjectName}</div>
-          <div className="text-sm font-bold text-white">Lecture {lectureId}</div>
+      <header className="bg-[#1a1a2e] text-white px-3 sm:px-6 py-2 flex items-center justify-between border-b border-slate-700 shrink-0 gap-2">
+        <div className="min-w-0 pr-1">
+          <div className="text-[11px] sm:text-xs text-slate-400 font-medium truncate max-w-[130px] sm:max-w-none">{subjectCode} · {subjectName}</div>
+          <div className="text-xs sm:text-sm font-bold text-white">Lecture {lectureId}</div>
         </div>
 
         {/* Circular Timer Ring in Center */}
-        <div className="flex items-center justify-center">
-          <div className="relative w-12 h-12 flex items-center justify-center">
-            <svg className="absolute inset-0 -rotate-90" width="48" height="48" viewBox="0 0 48 48">
+        <div className="flex items-center justify-center shrink-0">
+          <div className="relative w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center">
+            <svg className="absolute inset-0 -rotate-90" width="44" height="44" viewBox="0 0 48 48">
               <circle cx="24" cy="24" r={rCircle} fill="none" stroke="#1e293b" strokeWidth="4" />
               <circle
                 cx="24"
@@ -1179,38 +1182,58 @@ export default function QuizClient({
                 style={{ transition: 'stroke-dasharray 1s linear' }}
               />
             </svg>
-            <span className="text-xs font-mono font-bold text-white z-10">{timeStr}</span>
+            <span className="text-[11px] sm:text-xs font-mono font-bold text-white z-10">{timeStr}</span>
           </div>
         </div>
 
         {/* User Info (Right) */}
-        <div className="flex items-center gap-3">
-          <div className="text-right">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="text-right hidden sm:block">
             <div className="text-xs font-bold text-white">GUEST GUEST</div>
             <div className="text-[11px] text-slate-400">
               {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
-          <div className="w-9 h-9 rounded-full bg-slate-600 border-2 border-slate-500 flex items-center justify-center">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-600 border-2 border-slate-500 flex items-center justify-center">
             <User className="w-4 h-4 text-slate-300" />
           </div>
         </div>
       </header>
 
       {/* ── 2. PURPLE QUESTION INFO BAR ── */}
-      <div className="bg-[#6d28d9] px-4 py-2 flex items-center justify-between shrink-0">
-        <span className="text-white font-semibold text-sm">
-          Question No: {current + 1} of {questions.length}
-          <span className="ml-2 text-xs bg-purple-900/60 px-2 py-0.5 rounded uppercase">{q.type}</span>
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-white text-sm">Marks: {qMarks} (Time {qTime} Min)</span>
+      <div className="bg-[#6d28d9] px-3 sm:px-4 py-2 flex items-center justify-between shrink-0 gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <span className="text-white font-semibold text-xs sm:text-sm whitespace-nowrap">
+            Q: {current + 1}/{questions.length}
+          </span>
+          <span className="text-[10px] sm:text-xs bg-purple-900/60 px-1.5 py-0.5 rounded uppercase font-bold text-purple-200">
+            {q.type}
+          </span>
+        </div>
+
+        {/* Mobile Grid Toggle Pill */}
+        <button
+          type="button"
+          onClick={() => setShowMobileSummary(true)}
+          className="md:hidden flex items-center gap-1 bg-purple-950/80 hover:bg-purple-900 border border-purple-400/60 text-white px-2.5 py-1 rounded-md text-[11px] font-bold shadow-xs active:scale-95 transition-all"
+        >
+          <Layers className="w-3.5 h-3.5 text-cyan-300" />
+          <span>Grid ({attemptedCount}/{questions.length})</span>
+        </button>
+
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <span className="text-white text-xs sm:text-sm font-medium whitespace-nowrap">
+            {qMarks} M ({qTime}m)
+          </span>
           <button
             onClick={toggleFlag}
             className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
               flagged.has(current) ? 'bg-yellow-400 text-black' : 'bg-yellow-500/40 text-yellow-200 hover:bg-yellow-400 hover:text-black'
             }`}
-          >!</button>
+            title="Flag question"
+          >
+            !
+          </button>
         </div>
       </div>
 
@@ -1372,8 +1395,8 @@ export default function QuizClient({
           )}
         </div>
 
-        {/* RIGHT SIDEBAR */}
-        <div className="w-48 bg-[#1e1b4b] border-l border-purple-900 flex flex-col text-xs shrink-0">
+        {/* RIGHT SIDEBAR (Desktop: Visible | Mobile: Hidden) */}
+        <div className="hidden md:flex w-48 bg-[#1e1b4b] border-l border-purple-900 flex-col text-xs shrink-0">
           <div className="bg-[#4c1d95] px-3 py-2 text-white font-semibold shrink-0">Summary</div>
 
           <div className="overflow-y-auto flex-1 p-2">
@@ -1428,51 +1451,120 @@ export default function QuizClient({
             </div>
           </div>
         </div>
+
+        {/* MOBILE SUMMARY DRAWER OVERLAY */}
+        {showMobileSummary && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end md:hidden">
+            <div className="w-[85%] max-w-xs h-full bg-[#1e1b4b] text-white flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
+              <div className="bg-[#4c1d95] px-4 py-3 flex items-center justify-between shrink-0">
+                <span className="font-bold text-sm flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-cyan-300" />
+                  <span>Question Summary</span>
+                </span>
+                <button
+                  onClick={() => setShowMobileSummary(false)}
+                  className="p-1 rounded-md hover:bg-purple-800 text-purple-200 active:scale-95"
+                  title="Close Summary"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto flex-1 p-3">
+                <div className="grid grid-cols-4 gap-2">
+                  {questions.map((item, i) => {
+                    const isCur = i === current;
+                    const isFlag = flagged.has(i);
+                    const isSaved = item.type === 'mcq' ? i in savedMcq : !!savedSubj[i] || revealed[i];
+                    const isStaged = item.type === 'mcq'
+                      ? (i in stagedMcq && !(i in savedMcq))
+                      : (i in stagedSubj && !revealed[i]);
+
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          handleSelectQuestion(i);
+                          setShowMobileSummary(false);
+                        }}
+                        className={`rounded-full w-full aspect-square font-bold transition-all border-2 text-xs flex items-center justify-center ${
+                          isCur
+                            ? 'bg-teal-500 border-teal-400 text-white scale-105 shadow-md'
+                            : isFlag
+                            ? 'bg-yellow-500 border-yellow-400 text-black'
+                            : isSaved
+                            ? 'bg-emerald-600 border-emerald-500 text-white'
+                            : isStaged
+                            ? 'bg-amber-500 border-amber-400 text-black animate-pulse'
+                            : 'bg-[#312e81] border-purple-600 text-purple-200'
+                        }`}
+                      >
+                        {String(i + 1).padStart(2, '0')}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Stats Panel */}
+              <div className="bg-[#17133f] border-t border-purple-800 p-4 space-y-2 shrink-0 text-xs">
+                <div className="text-2xl font-black text-white">
+                  {questions.length ? Math.round((attemptedCount / questions.length) * 100) : 0}%
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Attempted</span>
+                  <span className="text-cyan-400 font-bold">{attemptedCount}</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Flagged</span>
+                  <span className="text-yellow-400 font-bold">{flagged.size}</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Total Questions</span>
+                  <span className="text-white font-bold">{questions.length}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ── 4. BOTTOM ACTION BAR ── */}
-      <footer className="bg-[#1a1a2e] border-t border-slate-700 h-14 flex items-center px-4 gap-2 shrink-0">
+      {/* ── 4. BOTTOM ACTION BAR (RESPONSIVE FOR MOBILE) ── */}
+      <footer className="bg-[#1a1a2e] border-t border-slate-700 min-h-[3.5rem] py-1.5 px-2 sm:px-4 flex items-center justify-between gap-1.5 sm:gap-2 shrink-0">
         <button
           onClick={handleFinish}
-          className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded transition-colors flex items-center gap-1.5"
+          className="px-2.5 sm:px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded transition-colors flex items-center gap-1 shrink-0"
         >
           <FileText className="w-3.5 h-3.5" />
-          <span>Finish Session</span>
+          <span className="hidden sm:inline">Finish Session</span>
+          <span className="sm:hidden">Finish</span>
         </button>
 
-        <div className="flex items-center gap-2 ml-2">
-          <button
-            onClick={toggleFlag}
-            className={`px-3 py-2 rounded font-bold text-xs transition-colors flex items-center gap-1 ${
-              flagged.has(current) ? 'bg-yellow-400 text-black' : 'bg-purple-600 hover:bg-purple-500 text-white'
-            }`}
-          >
-            <Flag className="w-3.5 h-3.5" />
-            <span>Flag</span>
-          </button>
-          <button onClick={handleFirst} className="px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-bold text-xs flex items-center gap-1">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <button onClick={handleFirst} className="hidden sm:flex px-2.5 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-bold text-xs items-center gap-1">
             <ChevronsLeft className="w-3.5 h-3.5" />
             <span>First</span>
           </button>
           <button onClick={handlePrev} disabled={current === 0}
-            className="px-3 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white rounded font-bold text-xs">
-            Previous
+            className="px-2 sm:px-3 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white rounded font-bold text-xs shrink-0 flex items-center gap-1">
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span className="hidden xs:inline">Prev</span>
           </button>
           <button onClick={handleNext}
-            className="px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold text-xs flex items-center gap-1">
+            className="px-2 sm:px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold text-xs shrink-0 flex items-center gap-1">
             <span>Next</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
-          <button onClick={handleLast} className="px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-bold text-xs flex items-center gap-1">
+          <button onClick={handleLast} className="hidden sm:flex px-2.5 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-bold text-xs items-center gap-1">
             <span>Last</span>
             <ChevronsRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="ml-auto">
+        <div className="shrink-0">
           <button
             onClick={handleSave}
-            className={`px-4 py-2 rounded font-bold text-xs transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 sm:px-4 py-2 rounded font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm ${
               isCurrentUnsaved()
                 ? 'bg-amber-500 text-black animate-pulse'
                 : 'bg-teal-600 hover:bg-teal-500 text-white'
