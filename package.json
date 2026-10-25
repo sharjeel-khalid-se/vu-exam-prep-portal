@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:sync": "node scripts/sync-turso.mjs"
   },
   "dependencies": {
+    "@libsql/client": "^0.18.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/better-sqlite3": "^9.6.0",
     "better-sqlite3": "^13.0.3",

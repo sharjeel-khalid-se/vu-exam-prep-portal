@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { queryAll, execute, isTurso } from '@/lib/db';
 import { seedAllCourses } from '@/lib/seed';
 
 export async function GET() {
   try {
-    seedAllCourses();
-    const db = getDb();
-    const subjects = db.prepare(`SELECT * FROM subjects ORDER BY code`).all();
+    if (!isTurso()) seedAllCourses();
+    const subjects = await queryAll(`SELECT * FROM subjects ORDER BY code`);
     return NextResponse.json({ subjects });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
@@ -17,11 +16,10 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const db = getDb();
-    const result = db.prepare(`
+    const result = await execute(`
       INSERT INTO subjects (name, slug, code, description)
       VALUES (?, ?, ?, ?)
-    `).run(body.name, body.slug, body.code, body.description ?? '');
+    `, [body.name, body.slug, body.code, body.description ?? '']);
     return NextResponse.json({ id: result.lastInsertRowid });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';

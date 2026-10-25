@@ -1,31 +1,29 @@
 import { NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { queryAll, isTurso } from '@/lib/db';
 import { seedAllCourses } from '@/lib/seed';
 
 export async function GET(req: Request) {
   try {
-    seedAllCourses();
+    if (!isTurso()) seedAllCourses();
     const { searchParams } = new URL(req.url);
     const q = (searchParams.get('q') ?? '').trim();
 
-    const db = getDb();
-
     if (!q) {
-      const subjects = db.prepare(`SELECT * FROM subjects ORDER BY code`).all();
+      const subjects = await queryAll(`SELECT * FROM subjects ORDER BY code`);
       return NextResponse.json({ subjects, lectures: [] });
     }
 
     const pattern = `%${q}%`;
 
     // Matching subjects
-    const subjects = db.prepare(`
+    const subjects = await queryAll(`
       SELECT * FROM subjects
       WHERE code LIKE ? OR name LIKE ? OR description LIKE ?
       ORDER BY code
-    `).all(pattern, pattern, pattern);
+    `, [pattern, pattern, pattern]);
 
     // Matching lectures (with subject info and question count)
-    const lectures = db.prepare(`
+    const lectures = await queryAll(`
       SELECT 
         l.id,
         l.number,
@@ -44,7 +42,7 @@ export async function GET(req: Request) {
          OR s.name LIKE ?
       GROUP BY l.id
       ORDER BY s.code, l.number
-    `).all(pattern, pattern, q, pattern, pattern);
+    `, [pattern, pattern, q, pattern, pattern]);
 
     return NextResponse.json({ subjects, lectures });
   } catch (err: unknown) {

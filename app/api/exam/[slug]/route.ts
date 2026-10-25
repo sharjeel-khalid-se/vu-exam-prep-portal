@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { queryOne, queryAll, isTurso } from '@/lib/db';
 import { seedCS403Lecture1, seedCS403Exam, seedAllCourses } from '@/lib/seed';
 
 export const dynamic = 'force-dynamic';
@@ -95,11 +95,12 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid type. Use: midterm or finalterm' }, { status: 400 });
     }
 
-    seedAllCourses();
-    seedCS403Lecture1();
-    seedCS403Exam();
+    if (!isTurso()) {
+      seedAllCourses();
+      seedCS403Lecture1();
+      seedCS403Exam();
+    }
 
-    const db = getDb();
     const baseConfig = EXAM_CONFIG[type];
     const subjectOverride = SUBJECT_EXAM_OVERRIDES[slug]?.[type];
     const minLecture = subjectOverride?.minLecture ?? baseConfig.minLecture;
@@ -113,15 +114,14 @@ export async function GET(
       syllabus,
     };
 
-    const subject = db.prepare('SELECT * FROM subjects WHERE slug = ?').get(slug) as { id: number } | undefined;
+    const subject = await queryOne('SELECT * FROM subjects WHERE slug = ?', [slug]) as { id: number } | null;
     if (!subject) return NextResponse.json({ error: 'Subject not found' }, { status: 404 });
 
     // Strict lecture scope based on VU exam syllabus:
-    const lectures = db.prepare(`
-      SELECT id FROM lectures 
-      WHERE subject_id = ? AND number >= ? AND number <= ?
-      ORDER BY number
-    `).all(subject.id, minLecture, maxLecture) as { id: number }[];
+    const lectures = await queryAll(
+      `SELECT id FROM lectures WHERE subject_id = ? AND number >= ? AND number <= ? ORDER BY number`,
+      [subject.id, minLecture, maxLecture]
+    ) as { id: number }[];
 
     const lectureIds = lectures.map(l => l.id);
 
@@ -147,17 +147,20 @@ export async function GET(
     const ids: (number | string)[] = lectureIds;
 
     // Pull from database with RANDOM() ordering
-    const rawMcqs = db.prepare(
-      `SELECT * FROM questions WHERE lecture_id IN (${ph}) AND type='mcq' ORDER BY RANDOM() LIMIT ?`
-    ).all(...ids, config.mcqTotal) as { id: number; stem: string; options: string; correct: string }[];
+    const rawMcqs = await queryAll(
+      `SELECT * FROM questions WHERE lecture_id IN (${ph}) AND type='mcq' ORDER BY RANDOM() LIMIT ?`,
+      [...ids, config.mcqTotal]
+    ) as { id: number; stem: string; options: string; correct: string }[];
 
-    const rawShorts = db.prepare(
-      `SELECT * FROM questions WHERE lecture_id IN (${ph}) AND type='short' ORDER BY RANDOM() LIMIT ?`
-    ).all(...ids, config.shortTotal) as { id: number; stem: string; correct: string; [key: string]: unknown }[];
+    const rawShorts = await queryAll(
+      `SELECT * FROM questions WHERE lecture_id IN (${ph}) AND type='short' ORDER BY RANDOM() LIMIT ?`,
+      [...ids, config.shortTotal]
+    ) as { id: number; stem: string; correct: string; [key: string]: unknown }[];
 
-    const rawLongs = db.prepare(
-      `SELECT * FROM questions WHERE lecture_id IN (${ph}) AND type='long' ORDER BY RANDOM() LIMIT ?`
-    ).all(...ids, config.longTotal) as { id: number; stem: string; correct: string; [key: string]: unknown }[];
+    const rawLongs = await queryAll(
+      `SELECT * FROM questions WHERE lecture_id IN (${ph}) AND type='long' ORDER BY RANDOM() LIMIT ?`,
+      [...ids, config.longTotal]
+    ) as { id: number; stem: string; correct: string; [key: string]: unknown }[];
 
     // Secondary in-memory shuffle to guarantee a uniquely randomized paper on every invocation
     const mcqs = shuffleArray(rawMcqs).map(shuffleMcqOptions);

@@ -1,20 +1,66 @@
 import Database from 'better-sqlite3';
+import { createClient, Client } from '@libsql/client';
 import path from 'path';
 import fs from 'fs';
 
-const DB_PATH = path.join(process.cwd(), 'data', 'exam.db');
-const dataDir = path.dirname(DB_PATH);
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+let _tursoClient: Client | null = null;
+let _sqliteDb: Database.Database | null = null;
 
-let _db: Database.Database | null = null;
+export function isTurso(): boolean {
+  return Boolean(process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN);
+}
+
+export function getTursoClient(): Client {
+  if (_tursoClient) return _tursoClient;
+  const url = process.env.TURSO_DATABASE_URL!;
+  const authToken = process.env.TURSO_AUTH_TOKEN;
+  _tursoClient = createClient({ url, authToken });
+  return _tursoClient;
+}
+
+export async function queryAll<T = Record<string, unknown>>(sql: string, args: (string | number | boolean | null)[] = []): Promise<T[]> {
+  if (isTurso()) {
+    const client = getTursoClient();
+    const res = await client.execute({ sql, args });
+    return res.rows as unknown as T[];
+  }
+  const db = getDb();
+  return db.prepare(sql).all(...args) as T[];
+}
+
+export async function queryOne<T = Record<string, unknown>>(sql: string, args: (string | number | boolean | null)[] = []): Promise<T | null> {
+  if (isTurso()) {
+    const client = getTursoClient();
+    const res = await client.execute({ sql, args });
+    if (!res.rows || res.rows.length === 0) return null;
+    return res.rows[0] as unknown as T;
+  }
+  const db = getDb();
+  const row = db.prepare(sql).get(...args);
+  return (row as T) ?? null;
+}
+
+export async function execute(sql: string, args: (string | number | boolean | null)[] = []): Promise<{ lastInsertRowid?: number | bigint }> {
+  if (isTurso()) {
+    const client = getTursoClient();
+    const res = await client.execute({ sql, args });
+    return { lastInsertRowid: res.lastInsertRowid };
+  }
+  const db = getDb();
+  const res = db.prepare(sql).run(...args);
+  return { lastInsertRowid: res.lastInsertRowid };
+}
 
 export function getDb(): Database.Database {
-  if (_db) return _db;
-  _db = new Database(DB_PATH);
-  _db.pragma('journal_mode = WAL');
-  _db.pragma('foreign_keys = ON');
-  initSchema(_db);
-  return _db;
+  if (_sqliteDb) return _sqliteDb;
+  const DB_PATH = path.join(process.cwd(), 'data', 'exam.db');
+  const dataDir = path.dirname(DB_PATH);
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  _sqliteDb = new Database(DB_PATH);
+  _sqliteDb.pragma('journal_mode = WAL');
+  _sqliteDb.pragma('foreign_keys = ON');
+  initSchema(_sqliteDb);
+  return _sqliteDb;
 }
 
 function initSchema(db: Database.Database) {
@@ -56,7 +102,6 @@ function initSchema(db: Database.Database) {
     );
   `);
 
-  // Safe migrations for existing DBs
   const cols = db.prepare('PRAGMA table_info(questions)').all() as { name: string }[];
   const addCol = (col: string, def: string) => {
     if (!cols.find(c => c.name === col)) db.exec(`ALTER TABLE questions ADD COLUMN ${col} ${def}`);
@@ -65,3 +110,4 @@ function initSchema(db: Database.Database) {
   addCol('time_minutes', 'INTEGER DEFAULT 1');
   addCol('question_category', "TEXT DEFAULT 'lecture'");
 }
+

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { queryOne, queryAll, isTurso } from '@/lib/db';
 import { seedAllCourses } from '@/lib/seed';
 
 export async function GET(
@@ -8,18 +8,17 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    seedAllCourses();
-    const db = getDb();
-    const subject = db.prepare(`SELECT * FROM subjects WHERE slug = ?`).get(slug);
+    if (!isTurso()) seedAllCourses();
+    const subject = await queryOne(`SELECT * FROM subjects WHERE slug = ?`, [slug]);
     if (!subject) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const lectures = db.prepare(`
+    const lectures = await queryAll(`
       SELECT l.*, 
         (SELECT COUNT(*) FROM questions q WHERE q.lecture_id = l.id) as question_count
       FROM lectures l
       WHERE l.subject_id = (SELECT id FROM subjects WHERE slug = ?)
       ORDER BY l.number
-    `).all(slug);
+    `, [slug]);
 
     return NextResponse.json({ subject, lectures });
   } catch (err: unknown) {
