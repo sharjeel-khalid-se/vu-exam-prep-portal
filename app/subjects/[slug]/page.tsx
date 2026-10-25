@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Shuffle, Clock, BookOpen, ArrowRight, FileText, Edit3, Layers, Info } from 'lucide-react';
+import { queryOne, queryAll } from '@/lib/db';
 
 interface Lecture {
   id: number;
@@ -19,11 +20,16 @@ interface Subject {
 
 async function getSubjectData(slug: string): Promise<{ subject: Subject; lectures: Lecture[] } | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'}/api/subjects/${slug}`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    return res.json();
+    const subject = await queryOne<Subject>('SELECT * FROM subjects WHERE slug = ?', [slug]);
+    if (!subject) return null;
+    const lectures = await queryAll<Lecture>(`
+      SELECT l.*, 
+        (SELECT COUNT(*) FROM questions q WHERE q.lecture_id = l.id) as question_count
+      FROM lectures l
+      WHERE l.subject_id = ?
+      ORDER BY l.number
+    `, [subject.id]);
+    return { subject, lectures };
   } catch {
     return null;
   }

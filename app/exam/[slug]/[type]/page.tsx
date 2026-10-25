@@ -1,14 +1,10 @@
 import ExamClient from './ExamClient';
+import { queryOne } from '@/lib/db';
 
 async function getSubjectInfo(slug: string) {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'}/api/subjects/${slug}`,
-      { cache: 'no-store' }
-    );
-    if (!res.ok) return { code: slug.toUpperCase(), name: slug };
-    const data = await res.json();
-    return data.subject ?? { code: slug.toUpperCase(), name: slug };
+    const subject = await queryOne<{ code: string; name: string }>('SELECT code, name FROM subjects WHERE slug = ?', [slug]);
+    return subject ?? { code: slug.toUpperCase(), name: slug };
   } catch {
     return { code: slug.toUpperCase(), name: slug };
   }

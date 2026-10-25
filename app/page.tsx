@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import HomeSearch from './HomeSearch';
 import { Check } from 'lucide-react';
+import { queryAll } from '@/lib/db';
 
 interface Subject {
   id: number;
@@ -12,11 +13,7 @@ interface Subject {
 
 async function getSubjects(): Promise<Subject[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'}/api/subjects`, {
-      cache: 'no-store',
-    });
-    const data = await res.json();
-    return data.subjects ?? [];
+    return await queryAll<Subject>('SELECT * FROM subjects ORDER BY code');
   } catch {
     return [];
   }
