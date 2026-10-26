@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
-import { Search, X, BookOpen, Clock, FileText, Edit3, ArrowRight, Layers } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, X, BookOpen, Clock, FileText, Edit3, ArrowRight, Layers, Loader2 } from 'lucide-react';
 
 interface Subject {
   id: number;
@@ -27,6 +27,13 @@ export default function HomeSearch({ initialSubjects }: { initialSubjects: Subje
   const [subjects, setSubjects] = useState<Subject[]>(initialSubjects);
   const [lectures, setLectures] = useState<LectureResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+  const router = useRouter();
+
+  const navigateTo = (href: string) => {
+    setNavigatingTo(href);
+    router.push(href);
+  };
 
   // Debounced live search
   useEffect(() => {
@@ -131,7 +138,7 @@ export default function HomeSearch({ initialSubjects }: { initialSubjects: Subje
             {lectures.map((lec) => (
               <div
                 key={lec.id}
-                className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between"
+                className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:border-slate-300 hover:shadow-md transition-all active:scale-[0.97] transition-transform flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -151,36 +158,56 @@ export default function HomeSearch({ initialSubjects }: { initialSubjects: Subje
                 {/* 1-Click Practice Buttons */}
                 <div className="space-y-1.5 border-t border-slate-100 pt-3">
                   <div className="grid grid-cols-2 gap-1.5 text-xs font-semibold">
-                    <Link
-                      href={`/quiz/${lec.subject_slug}/${lec.number}?type=mcq`}
-                      className="text-center py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-lg border border-slate-200 transition-colors flex items-center justify-center gap-1.5"
+                    <button
+                      onClick={() => navigateTo(`/quiz/${lec.subject_slug}/${lec.number}?type=mcq`)}
+                      disabled={navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=mcq`}
+                      className={`text-center py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-lg border border-slate-200 transition-colors active:scale-[0.97] transition-transform flex items-center justify-center gap-1.5 ${navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=mcq` ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
-                      <FileText className="w-3.5 h-3.5 text-blue-600" />
+                      {navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=mcq` ? (
+                        <Loader2 className="w-3.5 h-3.5 text-blue-600 animate-spin" />
+                      ) : (
+                        <FileText className="w-3.5 h-3.5 text-blue-600" />
+                      )}
                       <span>MCQs Quiz</span>
-                    </Link>
-                    <Link
-                      href={`/quiz/${lec.subject_slug}/${lec.number}?type=short`}
-                      className="text-center py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-lg border border-slate-200 transition-colors flex items-center justify-center gap-1.5"
+                    </button>
+                    <button
+                      onClick={() => navigateTo(`/quiz/${lec.subject_slug}/${lec.number}?type=short`)}
+                      disabled={navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=short`}
+                      className={`text-center py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-lg border border-slate-200 transition-colors active:scale-[0.97] transition-transform flex items-center justify-center gap-1.5 ${navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=short` ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
-                      <Edit3 className="w-3.5 h-3.5 text-emerald-600" />
+                      {navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=short` ? (
+                        <Loader2 className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
+                      ) : (
+                        <Edit3 className="w-3.5 h-3.5 text-emerald-600" />
+                      )}
                       <span>Short (3m)</span>
-                    </Link>
+                    </button>
                   </div>
                   <div className="grid grid-cols-2 gap-1.5 text-xs font-semibold">
-                    <Link
-                      href={`/quiz/${lec.subject_slug}/${lec.number}?type=long`}
-                      className="text-center py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-lg border border-slate-200 transition-colors flex items-center justify-center gap-1.5"
+                    <button
+                      onClick={() => navigateTo(`/quiz/${lec.subject_slug}/${lec.number}?type=long`)}
+                      disabled={navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=long`}
+                      className={`text-center py-2 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-lg border border-slate-200 transition-colors active:scale-[0.97] transition-transform flex items-center justify-center gap-1.5 ${navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=long` ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
-                      <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                      {navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=long` ? (
+                        <Loader2 className="w-3.5 h-3.5 text-indigo-600 animate-spin" />
+                      ) : (
+                        <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                      )}
                       <span>Long (5m)</span>
-                    </Link>
-                    <Link
-                      href={`/quiz/${lec.subject_slug}/${lec.number}?type=all`}
-                      className="text-center py-2 bg-[#0f172a] hover:bg-slate-800 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                    </button>
+                    <button
+                      onClick={() => navigateTo(`/quiz/${lec.subject_slug}/${lec.number}?type=all`)}
+                      disabled={navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=all`}
+                      className={`text-center py-2 bg-[#0f172a] hover:bg-slate-800 text-white rounded-lg transition-colors active:scale-[0.97] transition-transform flex items-center justify-center gap-1.5 ${navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=all` ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
-                      <Layers className="w-3.5 h-3.5" />
+                      {navigatingTo === `/quiz/${lec.subject_slug}/${lec.number}?type=all` ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Layers className="w-3.5 h-3.5" />
+                      )}
                       <span>Mixed</span>
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -242,28 +269,54 @@ export default function HomeSearch({ initialSubjects }: { initialSubjects: Subje
                 </div>
 
                 <div className="space-y-2 border-t border-slate-100 pt-4">
-                  <Link
-                    href={`/subjects/${subject.slug}`}
-                    className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-white font-semibold text-xs transition-colors shadow-xs"
+                  <button
+                    onClick={() => navigateTo(`/subjects/${subject.slug}`)}
+                    disabled={navigatingTo === `/subjects/${subject.slug}`}
+                    className={`w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-white font-semibold text-xs transition-colors shadow-xs active:scale-[0.97] transition-transform ${
+                      navigatingTo === `/subjects/${subject.slug}` ? 'opacity-75 cursor-wait' : ''
+                    }`}
                   >
-                    <span>Enter course portal</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                    {navigatingTo === `/subjects/${subject.slug}` ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Opening portal...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Enter course portal</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </button>
                   <div className="flex gap-2">
-                    <Link
-                      href={`/exam/${subject.slug}/midterm`}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+                    <button
+                      onClick={() => navigateTo(`/exam/${subject.slug}/midterm`)}
+                      disabled={navigatingTo === `/exam/${subject.slug}/midterm`}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors active:scale-[0.97] transition-transform ${
+                        navigatingTo === `/exam/${subject.slug}/midterm` ? 'opacity-75 cursor-wait' : ''
+                      }`}
                     >
-                      <Clock className="w-3 h-3 text-slate-400" />
+                      {navigatingTo === `/exam/${subject.slug}/midterm` ? (
+                        <Loader2 className="w-3 h-3 text-slate-600 animate-spin" />
+                      ) : (
+                        <Clock className="w-3 h-3 text-slate-400" />
+                      )}
                       <span>Mid-term · 60 min</span>
-                    </Link>
-                    <Link
-                      href={`/exam/${subject.slug}/finalterm`}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+                    </button>
+                    <button
+                      onClick={() => navigateTo(`/exam/${subject.slug}/finalterm`)}
+                      disabled={navigatingTo === `/exam/${subject.slug}/finalterm`}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors active:scale-[0.97] transition-transform ${
+                        navigatingTo === `/exam/${subject.slug}/finalterm` ? 'opacity-75 cursor-wait' : ''
+                      }`}
                     >
-                      <Clock className="w-3 h-3 text-slate-400" />
+                      {navigatingTo === `/exam/${subject.slug}/finalterm` ? (
+                        <Loader2 className="w-3 h-3 text-slate-600 animate-spin" />
+                      ) : (
+                        <Clock className="w-3 h-3 text-slate-400" />
+                      )}
                       <span>Final-term · 90 min</span>
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>

@@ -266,7 +266,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ slug: 
 
             <Link
               href={`/exam/${subject.slug}/midterm`}
-              className="w-full text-center py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white font-semibold rounded-lg shadow-xs transition-colors text-xs flex items-center justify-center gap-1.5"
+              className="w-full text-center py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white font-semibold rounded-lg shadow-xs transition-all text-xs flex items-center justify-center gap-1.5 active:scale-[0.98]"
             >
               <span>Start Mid-Term Exam Simulation</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -332,7 +332,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ slug: 
 
             <Link
               href={`/exam/${subject.slug}/finalterm`}
-              className="w-full text-center py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white font-semibold rounded-lg shadow-xs transition-colors text-xs flex items-center justify-center gap-1.5"
+              className="w-full text-center py-2.5 bg-[#0f172a] hover:bg-slate-800 text-white font-semibold rounded-lg shadow-xs transition-all text-xs flex items-center justify-center gap-1.5 active:scale-[0.98]"
             >
               <span>Start Final-Term Exam Simulation</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -371,7 +371,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ slug: 
                 {/* MCQs Quiz */}
                 <Link
                   href={`/quiz/${subject.slug}/${lecture.id}?type=mcq`}
-                  className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-start gap-2.5 group"
+                  className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex items-start gap-2.5 group active:scale-[0.97]"
                 >
                   <FileText className="w-4 h-4 text-blue-600 mt-0.5" />
                   <div>
@@ -383,7 +383,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ slug: 
                 {/* Short Questions */}
                 <Link
                   href={`/quiz/${subject.slug}/${lecture.id}?type=short`}
-                  className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-start gap-2.5 group"
+                  className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex items-start gap-2.5 group active:scale-[0.97]"
                 >
                   <Edit3 className="w-4 h-4 text-blue-600 mt-0.5" />
                   <div>
@@ -395,7 +395,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ slug: 
                 {/* Long Questions */}
                 <Link
                   href={`/quiz/${subject.slug}/${lecture.id}?type=long`}
-                  className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-start gap-2.5 group"
+                  className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex items-start gap-2.5 group active:scale-[0.97]"
                 >
                   <FileText className="w-4 h-4 text-blue-600 mt-0.5" />
                   <div>
@@ -407,7 +407,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ slug: 
                 {/* Mixed Mode */}
                 <Link
                   href={`/quiz/${subject.slug}/${lecture.id}?type=all`}
-                  className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-start gap-2.5 group"
+                  className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex items-start gap-2.5 group active:scale-[0.97]"
                 >
                   <Layers className="w-4 h-4 text-blue-600 mt-0.5" />
                   <div>

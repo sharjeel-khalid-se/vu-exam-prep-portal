@@ -203,6 +203,7 @@ export default function ExamClient({
   // User notification & warning alerts
   const [saveWarning, setSaveWarning] = useState<string | null>(null);
   const [saveNotification, setSaveNotification] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Results review filter: 'all' | 'incorrect' | 'correct'
   const [reviewFilter, setReviewFilter] = useState<'all' | 'incorrect' | 'correct'>('all');
@@ -312,6 +313,7 @@ export default function ExamClient({
   };
 
   const handleSave = () => {
+    setIsSaving(true);
     if (section === 'mcq') {
       const staged = stagedMcq[currentMcq];
       if (staged !== undefined) {
@@ -328,6 +330,7 @@ export default function ExamClient({
       setSaveNotification('Answer saved successfully!');
       setTimeout(() => setSaveNotification(null), 3000);
     }
+    setTimeout(() => setIsSaving(false), 400);
   };
 
   /* ── Navigation Handlers (Guarded by canNavigate) ── */
@@ -1512,7 +1515,7 @@ export default function ExamClient({
       {/* ══ BOTTOM BAR (RESPONSIVE FOR MOBILE) ══════════════════════════════════════════ */}
       <div className="bg-[#1a1a2e] border-t border-slate-700 min-h-[3.5rem] py-1.5 px-2 sm:px-4 flex items-center justify-between gap-1.5 sm:gap-2 flex-shrink-0 z-20">
         <button onClick={finishExam}
-          className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold text-xs sm:text-sm transition-colors shrink-0">
+          className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold text-xs sm:text-sm transition-all shrink-0 active:scale-95">
           <ClipboardList className="w-4 h-4" />
           <span className="hidden sm:inline">Finish Exam</span>
           <span className="sm:hidden">Finish</span>
@@ -1521,28 +1524,28 @@ export default function ExamClient({
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <button
             onClick={() => setFlagged(f => { const n = new Set(f); n.has(currentKey) ? n.delete(currentKey) : n.add(currentKey); return n; })}
-            className={`flex items-center gap-1 px-2 sm:px-3 py-2 rounded font-semibold text-xs sm:text-sm transition-colors ${flagged.has(currentKey) ? 'bg-yellow-400 text-black' : 'bg-[#6d28d9] hover:bg-purple-600 text-white'}`}
+            className={`flex items-center gap-1 px-2 sm:px-3 py-2 rounded font-semibold text-xs sm:text-sm transition-all active:scale-95 ${flagged.has(currentKey) ? 'bg-yellow-400 text-black' : 'bg-[#6d28d9] hover:bg-purple-600 text-white'}`}
             title="Flag question">
             <Flag className="w-3.5 h-3.5" />
             <span className="hidden xs:inline">Flag</span>
           </button>
           <button onClick={handleFirst}
-            className="hidden sm:flex items-center gap-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-semibold text-sm transition-colors">
+            className="hidden sm:flex items-center gap-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-semibold text-sm transition-all active:scale-95">
             <ChevronsLeft className="w-4 h-4" />
             First
           </button>
           <button onClick={handleLast}
-            className="hidden sm:flex items-center gap-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-semibold text-sm transition-colors">
+            className="hidden sm:flex items-center gap-1 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-black rounded font-semibold text-sm transition-all active:scale-95">
             Last
             <ChevronsRight className="w-4 h-4" />
           </button>
           <button onClick={goPrev}
-            className="flex items-center gap-1 px-2.5 sm:px-3 py-2 bg-[#6d28d9] hover:bg-purple-600 text-white rounded font-bold text-xs sm:text-sm transition-colors shrink-0">
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-2 bg-[#6d28d9] hover:bg-purple-600 text-white rounded font-bold text-xs sm:text-sm transition-all shrink-0 active:scale-95">
             <ChevronLeft className="w-3.5 h-3.5" />
             <span>Prev</span>
           </button>
           <button onClick={goNext}
-            className="flex items-center gap-1 px-2.5 sm:px-3 py-2 bg-[#6d28d9] hover:bg-purple-600 text-white rounded font-bold text-xs sm:text-sm transition-colors shrink-0">
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-2 bg-[#6d28d9] hover:bg-purple-600 text-white rounded font-bold text-xs sm:text-sm transition-all shrink-0 active:scale-95">
             <span>Next</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -1550,15 +1553,22 @@ export default function ExamClient({
 
         <button
           onClick={handleSave}
-          className={`px-3.5 sm:px-5 py-2 rounded font-bold text-xs sm:text-sm transition-all shadow-xs flex items-center gap-1.5 shrink-0 ${
-            isCurrentUnsaved()
+          disabled={isSaving}
+          className={`px-3.5 sm:px-5 py-2 rounded font-bold text-xs sm:text-sm transition-all shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95 ${
+            isSaving
+              ? 'bg-teal-700 text-teal-200 cursor-wait'
+              : isCurrentUnsaved()
               ? 'bg-amber-500 hover:bg-amber-400 text-black animate-pulse ring-2 ring-amber-300 ring-offset-1 ring-offset-[#1a1a2e]'
               : 'bg-teal-600 hover:bg-teal-500 text-white'
           }`}
           title="Save your answer"
         >
-          <Save className="w-4 h-4" />
-          <span>{isCurrentUnsaved() ? 'Save *' : 'Save'}</span>
+          {isSaving ? (
+            <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          <span>{isSaving ? 'Saving...' : isCurrentUnsaved() ? 'Save *' : 'Save'}</span>
         </button>
       </div>
     </div>

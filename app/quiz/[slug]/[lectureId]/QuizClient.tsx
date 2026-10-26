@@ -301,6 +301,7 @@ export default function QuizClient({
   const [saveWarning, setSaveWarning] = useState<string | null>(null);
   const [saveNotification, setSaveNotification] = useState<string | null>(null);
   const [showMobileSummary, setShowMobileSummary] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Results review filter: 'all' | 'incorrect' | 'correct'
   const [reviewFilter, setReviewFilter] = useState<'all' | 'incorrect' | 'correct'>('all');
@@ -396,6 +397,7 @@ export default function QuizClient({
 
   const handleSave = () => {
     if (!q) return;
+    setIsSaving(true);
     if (q.type === 'mcq') {
       const staged = stagedMcq[current];
       if (staged !== undefined) {
@@ -411,6 +413,7 @@ export default function QuizClient({
       setSaveNotification('Answer saved successfully!');
       setTimeout(() => setSaveNotification(null), 3000);
     }
+    setTimeout(() => setIsSaving(false), 400);
   };
 
   const handleNext = () => {
@@ -1533,7 +1536,7 @@ export default function QuizClient({
       <footer className="bg-[#1a1a2e] border-t border-slate-700 min-h-[3.5rem] py-1.5 px-2 sm:px-4 flex items-center justify-between gap-1.5 sm:gap-2 shrink-0">
         <button
           onClick={handleFinish}
-          className="px-2.5 sm:px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded transition-colors flex items-center gap-1 shrink-0"
+          className="px-2.5 sm:px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded transition-all flex items-center gap-1 shrink-0 active:scale-95"
         >
           <FileText className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Finish Session</span>
@@ -1546,12 +1549,12 @@ export default function QuizClient({
             <span>First</span>
           </button>
           <button onClick={handlePrev} disabled={current === 0}
-            className="px-2 sm:px-3 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white rounded font-bold text-xs shrink-0 flex items-center gap-1">
+            className="px-2 sm:px-3 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white rounded font-bold text-xs shrink-0 flex items-center gap-1 active:scale-95 transition-all">
             <ChevronLeft className="w-3.5 h-3.5" />
             <span className="hidden xs:inline">Prev</span>
           </button>
           <button onClick={handleNext}
-            className="px-2 sm:px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold text-xs shrink-0 flex items-center gap-1">
+            className="px-2 sm:px-3 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold text-xs shrink-0 flex items-center gap-1 active:scale-95 transition-all">
             <span>Next</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -1564,14 +1567,21 @@ export default function QuizClient({
         <div className="shrink-0">
           <button
             onClick={handleSave}
-            className={`px-3.5 sm:px-4 py-2 rounded font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm ${
-              isCurrentUnsaved()
+            disabled={isSaving}
+            className={`px-3.5 sm:px-4 py-2 rounded font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm active:scale-95 ${
+              isSaving
+                ? 'bg-teal-700 text-teal-200 cursor-wait'
+                : isCurrentUnsaved()
                 ? 'bg-amber-500 text-black animate-pulse'
                 : 'bg-teal-600 hover:bg-teal-500 text-white'
             }`}
           >
-            <Save className="w-3.5 h-3.5" />
-            <span>{isCurrentUnsaved() ? 'Save *' : 'Save'}</span>
+            {isSaving ? (
+              <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+            ) : (
+              <Save className="w-3.5 h-3.5" />
+            )}
+            <span>{isSaving ? 'Saving...' : isCurrentUnsaved() ? 'Save *' : 'Save'}</span>
           </button>
         </div>
       </footer>

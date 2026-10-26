@@ -34,3 +34,50 @@
 .bg-\[\#17133f\] ::-webkit-scrollbar-thumb {
   background: #4c1d95;
 }
+
+/* ---- Navigation Progress Bar Animations ---- */
+
+@keyframes nav-progress {
+  0% {
+    width: 0%;
+  }
+  30% {
+    width: 50%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 92%;
+  }
+}
+
+@keyframes nav-progress-finish {
+  0% {
+    width: 92%;
+    opacity: 1;
+  }
+  40% {
+    width: 100%;
+    opacity: 1;
+  }
+  100% {
+    width: 100%;
+    opacity: 0;
+  }
+}
+
+/* Small spinning indicator at the leading edge of the progress bar */
+.nav-spinner {
+  margin-top: 2px;
+  animation: nav-spinner-fade 400ms ease-out forwards;
+}
+
+@keyframes nav-spinner-fade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
