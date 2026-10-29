@@ -370,7 +370,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ slug: 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {/* MCQs Quiz */}
                 <Link
-                  href={`/quiz/${subject.slug}/${lecture.id}?type=mcq`}
+                  href={`/quiz/${subject.slug}/${lecture.number}?type=mcq`}
                   className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex items-start gap-2.5 group active:scale-[0.97]"
                 >
                   <FileText className="w-4 h-4 text-blue-600 mt-0.5" />
@@ -382,7 +382,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ slug: 
 
                 {/* Short Questions */}
                 <Link
-                  href={`/quiz/${subject.slug}/${lecture.id}?type=short`}
+                  href={`/quiz/${subject.slug}/${lecture.number}?type=short`}
                   className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex items-start gap-2.5 group active:scale-[0.97]"
                 >
                   <Edit3 className="w-4 h-4 text-blue-600 mt-0.5" />
@@ -394,7 +394,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ slug: 
 
                 {/* Long Questions */}
                 <Link
-                  href={`/quiz/${subject.slug}/${lecture.id}?type=long`}
+                  href={`/quiz/${subject.slug}/${lecture.number}?type=long`}
                   className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex items-start gap-2.5 group active:scale-[0.97]"
                 >
                   <FileText className="w-4 h-4 text-blue-600 mt-0.5" />
@@ -406,7 +406,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ slug: 
 
                 {/* Mixed Mode */}
                 <Link
-                  href={`/quiz/${subject.slug}/${lecture.id}?type=all`}
+                  href={`/quiz/${subject.slug}/${lecture.number}?type=all`}
                   className="p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex items-start gap-2.5 group active:scale-[0.97]"
                 >
                   <Layers className="w-4 h-4 text-blue-600 mt-0.5" />

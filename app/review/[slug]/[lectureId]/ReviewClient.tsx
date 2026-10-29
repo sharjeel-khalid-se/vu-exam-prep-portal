@@ -16,11 +16,18 @@ interface Question {
 
 export default function ReviewClient({
   lectureId,
+  lectureNumber,
+  lectureTitle,
   subjectSlug,
+  subjectCode,
 }: {
   lectureId: string;
+  lectureNumber?: number;
+  lectureTitle?: string;
   subjectSlug: string;
+  subjectCode?: string;
 }) {
+  const displayLectureNum = lectureNumber ?? lectureId;
   const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -30,7 +37,7 @@ export default function ReviewClient({
 
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/questions?lecture_id=${lectureId}&type=short`);
+    const res = await fetch(`/api/questions?lecture_id=${lectureId}&subject=${subjectSlug}&lecture_num=${displayLectureNum}&type=short`);
     const data = await res.json();
     setQuestions(data.questions ?? []);
     setLoading(false);
@@ -72,7 +79,7 @@ export default function ReviewClient({
         <div className="w-16 h-16 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto mb-4 text-slate-400">
           <BookOpen className="w-8 h-8" />
         </div>
-        <p>Is lecture mein short questions nahi hain abhi.</p>
+        <p>Lecture {displayLectureNum} mein short questions nahi hain abhi.</p>
         <Link href={`/subjects/${subjectSlug}`} className="mt-4 inline-flex items-center gap-1.5 text-emerald-400 hover:underline">
           <ArrowLeft className="w-4 h-4" />
           <span>Back</span>

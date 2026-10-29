@@ -268,17 +268,22 @@ function CircularTimer({
 /* ─── Main Lecture Practice Component ────────────────────── */
 export default function QuizClient({
   lectureId,
+  lectureNumber,
+  lectureTitle,
   subjectSlug,
   typeFilter,
   subjectCode,
   subjectName,
 }: {
   lectureId: string;
+  lectureNumber?: number;
+  lectureTitle?: string;
   subjectSlug: string;
   typeFilter: string;
   subjectCode: string;
   subjectName: string;
 }) {
+  const displayLectureNum = lectureNumber ?? lectureId;
   const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -322,7 +327,7 @@ export default function QuizClient({
     setLoading(true);
     const typeParam = typeFilter === 'all' ? '' : `&type=${typeFilter}`;
     try {
-      const res = await fetch(`/api/questions?lecture_id=${lectureId}${typeParam}`);
+      const res = await fetch(`/api/questions?lecture_id=${lectureId}&subject=${subjectSlug}&lecture_num=${displayLectureNum}${typeParam}`);
       const data = await res.json();
       const qs: Question[] = data.questions ?? [];
       setQuestions(qs);
@@ -531,7 +536,7 @@ export default function QuizClient({
         </div>
         <h2 className="text-xl font-bold text-slate-800 mb-2">No Questions Found</h2>
         <p className="text-slate-500 text-sm max-w-md mb-6">
-          There are currently no questions configured for this question type in Lecture {lectureId}.
+          There are currently no questions configured for this question type in Lecture {displayLectureNum}.
         </p>
         <Link
           href={`/subjects/${subjectSlug}`}
@@ -752,7 +757,7 @@ export default function QuizClient({
                   <span>Practice session completed</span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-1">
-                  Lecture {lectureId} Practice Results
+                  Lecture {displayLectureNum} Practice Results
                 </h1>
                 <p className="text-slate-600 text-sm leading-relaxed mt-2 max-w-xl">
                   {feedbackText}
@@ -1165,7 +1170,10 @@ export default function QuizClient({
       <header className="bg-[#1a1a2e] text-white px-3 sm:px-6 py-2 flex items-center justify-between border-b border-slate-700 shrink-0 gap-2">
         <div className="min-w-0 pr-1">
           <div className="text-[11px] sm:text-xs text-slate-400 font-medium truncate max-w-[130px] sm:max-w-none">{subjectCode} · {subjectName}</div>
-          <div className="text-xs sm:text-sm font-bold text-white">Lecture {lectureId}</div>
+          <div className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 truncate">
+            <span>Lecture {displayLectureNum}</span>
+            {lectureTitle && <span className="text-slate-400 font-normal hidden sm:inline truncate">— {lectureTitle}</span>}
+          </div>
         </div>
 
         {/* Circular Timer Ring in Center */}
