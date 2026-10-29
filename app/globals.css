@@ -81,3 +81,64 @@
     opacity: 0.6;
   }
 }
+
+/* ---- Math & Rich HTML Content Formatting ---- */
+.math-content {
+  display: block;
+}
+span.math-content {
+  display: inline;
+}
+
+.math-content p {
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.6;
+}
+.math-content p:first-child {
+  margin-top: 0;
+}
+.math-content p:last-child {
+  margin-bottom: 0;
+}
+
+.math-content ul {
+  list-style-type: disc;
+  padding-left: 1.35rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.math-content ol {
+  list-style-type: decimal;
+  padding-left: 1.35rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.math-content li {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.55;
+}
+
+.math-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.65rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.85rem;
+}
+
+.math-content th,
+.math-content td {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.math-content th {
+  background-color: rgba(148, 163, 184, 0.15);
+  font-weight: 600;
+  text-align: left;
+}
+

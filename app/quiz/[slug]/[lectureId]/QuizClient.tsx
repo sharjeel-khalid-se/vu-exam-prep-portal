@@ -1064,7 +1064,7 @@ export default function QuizClient({
                               <BookOpen className="w-3.5 h-3.5 text-blue-700" />
                               <span>Model Answer:</span>
                             </div>
-                            <div className="text-sm text-slate-800 whitespace-pre-line leading-relaxed">
+                            <div className="text-sm text-slate-800 leading-relaxed">
                               <MathText text={item.correct} />
                             </div>
                           </div>
@@ -1342,7 +1342,7 @@ export default function QuizClient({
                       <Check className="w-4 h-4" />
                       <span>Model Answer:</span>
                     </div>
-                    <div className="whitespace-pre-line"><MathText text={q.correct} /></div>
+                    <div><MathText text={q.correct} /></div>
                   </div>
                   {q.explanation && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-blue-800 text-xs">

@@ -1212,7 +1212,7 @@ export default function ExamClient({
                 </button>
               ) : (
                 <div className="mt-3 space-y-3">
-                  <div className="bg-emerald-50 border border-emerald-300 rounded-lg p-4 text-emerald-900 text-sm leading-relaxed whitespace-pre-line">
+                  <div className="bg-emerald-50 border border-emerald-300 rounded-lg p-4 text-emerald-900 text-sm leading-relaxed">
                     <strong className="text-emerald-700 flex items-center gap-1 mb-2"><Check className="w-4 h-4" /> Model Answer:</strong>
                     <MathText text={subjQ.correct} />
                   </div>

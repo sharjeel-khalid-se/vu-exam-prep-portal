@@ -9,9 +9,15 @@ interface MathTextProps {
   as?: 'div' | 'span' | 'p';
 }
 
-function escapeHtml(str: string): string {
+const SAFE_HTML_TAG_REGEX = /(<\/?(?:p|strong|b|em|i|u|s|strike|del|ins|mark|small|sub|sup|ol|ul|li|br|hr|table|thead|tbody|tfoot|tr|th|td|div|span|h[1-6]|blockquote|pre|code)(?:\s+[a-zA-Z0-9_\-:.]+(?:=(?:"[^"]*"|'[^']*'|[^\s"'>]+))?)*\s*\/?>)/gi;
+
+const HAS_BLOCK_HTML_REGEX = /<\/?(?:p|ol|ul|li|table|thead|tbody|tr|th|td|div|h[1-6]|blockquote)\b/i;
+
+const MATH_REGEX = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$(?!\s)[^$\n]+?(?<!\s)\$|\\begin\{(?:equation|align|aligned|gather|matrix|pmatrix|bmatrix|vmatrix|cases)\*?\}[\s\S]*?\\end\{(?:equation|align|aligned|gather|matrix|pmatrix|bmatrix|vmatrix|cases)\*?\}|<math[\s\S]*?<\/math>)/g;
+
+function escapeText(str: string): string {
   return str
-    .replace(/&/g, '&amp;')
+    .replace(/&(?!(?:[a-zA-Z]+|#[0-9]+|#x[0-9a-fA-F]+);)/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
@@ -29,6 +35,9 @@ export function formatAsciiEquation(mathStr: string): string {
   s = s.replace(/×/g, ' \\times ');
   s = s.replace(/²/g, '^2');
   s = s.replace(/³/g, '^3');
+
+  // Replace en-dash / em-dash with minus sign
+  s = s.replace(/[\u2013\u2014]/g, '-');
 
   // Subscripts: Q1 -> Q_1, P75 -> P_{75}, D5 -> D_5, fm -> f_m, f1 -> f_1, f2 -> f_2, n1 -> n_1, n2 -> n_2, X0 -> X_0, Xm -> X_m
   s = s.replace(/\b([QDP])(\d+)\b/g, '$1_{$2}');
@@ -62,8 +71,15 @@ export function autoConvertAsciiMathText(rawText: string): string {
 
   const lines = rawText.split('\n');
   const transformed = lines.map(line => {
-    // If the line already has LaTeX math delimiters or is a table line, don't touch it
-    if (line.includes('$$') || line.includes('\\[') || line.includes('\\(') || line.includes('$') || line.includes('|')) {
+    // If the line already has LaTeX math delimiters, is a table line, or contains HTML tags, don't touch it
+    if (
+      line.includes('$$') ||
+      line.includes('\\[') ||
+      line.includes('\\(') ||
+      line.includes('$') ||
+      line.includes('|') ||
+      line.includes('<')
+    ) {
       return line;
     }
 
@@ -108,55 +124,43 @@ export function autoConvertAsciiMathText(rawText: string): string {
 function renderMathSegment(segment: string): string {
   if (!segment) return '';
 
-  const regex = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$(?!\s)[^$\n]+?(?<!\s)\$|\\begin\{(?:equation|align|aligned|gather|matrix|pmatrix|bmatrix|vmatrix|cases)\*?\}[\s\S]*?\\end\{(?:equation|align|aligned|gather|matrix|pmatrix|bmatrix|vmatrix|cases)\*?\}|<math[\s\S]*?<\/math>)/g;
+  let mathContent: string | null = null;
+  let isDisplayMode = false;
 
-  const parts = segment.split(regex);
-  const result: string[] = [];
+  if (segment.startsWith('$$') && segment.endsWith('$$') && segment.length >= 4) {
+    mathContent = segment.slice(2, -2);
+    isDisplayMode = true;
+  } else if (segment.startsWith('\\[') && segment.endsWith('\\]') && segment.length >= 4) {
+    mathContent = segment.slice(2, -2);
+    isDisplayMode = true;
+  } else if (segment.startsWith('\\(') && segment.endsWith('\\)') && segment.length >= 4) {
+    mathContent = segment.slice(2, -2);
+    isDisplayMode = false;
+  } else if (segment.startsWith('\\begin{') && segment.includes('\\end{')) {
+    mathContent = segment;
+    isDisplayMode = true;
+  } else if (segment.startsWith('<math') && segment.endsWith('</math>')) {
+    return segment;
+  } else if (segment.startsWith('$') && segment.endsWith('$') && segment.length >= 2) {
+    mathContent = segment.slice(1, -1);
+    isDisplayMode = false;
+  }
 
-  for (const part of parts) {
-    if (!part) continue;
-
-    let mathContent: string | null = null;
-    let isDisplayMode = false;
-
-    if (part.startsWith('$$') && part.endsWith('$$') && part.length >= 4) {
-      mathContent = part.slice(2, -2);
-      isDisplayMode = true;
-    } else if (part.startsWith('\\[') && part.endsWith('\\]') && part.length >= 4) {
-      mathContent = part.slice(2, -2);
-      isDisplayMode = true;
-    } else if (part.startsWith('\\(') && part.endsWith('\\)') && part.length >= 4) {
-      mathContent = part.slice(2, -2);
-      isDisplayMode = false;
-    } else if (part.startsWith('\\begin{') && part.includes('\\end{')) {
-      mathContent = part;
-      isDisplayMode = true;
-    } else if (part.startsWith('<math') && part.endsWith('</math>')) {
-      result.push(part);
-      continue;
-    } else if (part.startsWith('$') && part.endsWith('$') && part.length >= 2) {
-      mathContent = part.slice(1, -1);
-      isDisplayMode = false;
-    }
-
-    if (mathContent !== null) {
-      try {
-        const rendered = katex.renderToString(mathContent.trim(), {
-          displayMode: isDisplayMode,
-          throwOnError: false,
-          output: 'htmlAndMathml',
-          trust: true,
-        });
-        result.push(rendered);
-      } catch {
-        result.push(escapeHtml(part));
-      }
-    } else {
-      result.push(escapeHtml(part));
+  if (mathContent !== null) {
+    try {
+      mathContent = mathContent.replace(/[\u2013\u2014]/g, '-');
+      return katex.renderToString(mathContent.trim(), {
+        displayMode: isDisplayMode,
+        throwOnError: false,
+        output: 'htmlAndMathml',
+        trust: true,
+      });
+    } catch {
+      return escapeText(segment);
     }
   }
 
-  return result.join('');
+  return escapeText(segment);
 }
 
 function renderMarkdownTable(tableLines: string[]): string {
@@ -174,7 +178,7 @@ function renderMarkdownTable(tableLines: string[]): string {
   // Header
   html += '<thead><tr class="bg-purple-800 text-white">';
   for (const h of headerCells) {
-    const hContent = renderMathSegment(h);
+    const hContent = renderMathToHtml(h);
     html += `<th class="border border-purple-700 px-3 py-1.5 text-center font-bold text-xs uppercase tracking-wider">${hContent}</th>`;
   }
   html += '</tr></thead>';
@@ -186,7 +190,7 @@ function renderMarkdownTable(tableLines: string[]): string {
     if (cells.length === 0) continue;
     html += '<tr class="even:bg-purple-50/40 hover:bg-purple-50 transition-colors">';
     for (const cell of cells) {
-      const cellContent = renderMathSegment(cell);
+      const cellContent = renderMathToHtml(cell);
       html += `<td class="border border-purple-100 px-3 py-1.5 text-center font-medium text-xs sm:text-sm text-slate-700">${cellContent}</td>`;
     }
     html += '</tr>';
@@ -195,64 +199,108 @@ function renderMarkdownTable(tableLines: string[]): string {
   return html;
 }
 
+function convertMarkdownTables(text: string): string {
+  if (!text || !text.includes('|')) return text;
+  // If the text contains an HTML table, don't attempt markdown table conversion
+  if (/<table\b/i.test(text)) return text;
+
+  const lines = text.split('\n');
+  const result: string[] = [];
+  let currentTable: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // A line is considered part of a markdown table if it has at least one '|' and is not a pure math equation line
+    if (line.includes('|') && line.trim().length > 2 && !/^\$\$[\s\S]*?\$\$$/.test(line.trim())) {
+      currentTable.push(line);
+    } else {
+      if (currentTable.length > 0) {
+        result.push(renderMarkdownTable(currentTable));
+        currentTable = [];
+      }
+      result.push(line);
+    }
+  }
+
+  if (currentTable.length > 0) {
+    result.push(renderMarkdownTable(currentTable));
+  }
+
+  return result.join('\n');
+}
+
 export function renderMathToHtml(rawText: string): string {
   if (!rawText || typeof rawText !== 'string') return '';
 
   // Clean MathType export comments if present
   let cleaned = rawText.replace(/<!--\s*MathType[\s\S]*?-->/gi, '');
 
-  // Pre-process ASCII formulas
+  // Pre-process ASCII formulas on lines without HTML
   cleaned = autoConvertAsciiMathText(cleaned);
 
-  // Parse lines: identify tables and regular paragraphs
-  const lines = cleaned.split('\n');
-  const resultBlocks: string[] = [];
-  let currentTable: string[] = [];
+  // Convert markdown tables if present
+  cleaned = convertMarkdownTables(cleaned);
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    // A line is considered part of a table if it has at least one '|' and is not a pure math equation line
-    if (line.includes('|') && line.trim().length > 2 && !/^\$\$[\s\S]*?\$\$$/.test(line.trim())) {
-      currentTable.push(line);
+  const hasBlockHtml = HAS_BLOCK_HTML_REGEX.test(cleaned);
+
+  // If text contains HTML blocks, collapse redundant newlines between tags
+  if (hasBlockHtml) {
+    cleaned = cleaned.replace(/(>)\s*\n+\s*(<)/g, '$1\n$2');
+  }
+
+  // Split by LaTeX math delimiters first
+  const mathParts = cleaned.split(MATH_REGEX);
+  const result: string[] = [];
+
+  for (const part of mathParts) {
+    if (!part) continue;
+
+    // Check if part is a LaTeX math delimiter
+    if (
+      (part.startsWith('$$') && part.endsWith('$$') && part.length >= 4) ||
+      (part.startsWith('\\[') && part.endsWith('\\]') && part.length >= 4) ||
+      (part.startsWith('\\(') && part.endsWith('\\)') && part.length >= 4) ||
+      (part.startsWith('\\begin{') && part.includes('\\end{')) ||
+      (part.startsWith('<math') && part.endsWith('</math>')) ||
+      (part.startsWith('$') && part.endsWith('$') && part.length >= 2)
+    ) {
+      result.push(renderMathSegment(part));
     } else {
-      if (currentTable.length > 0) {
-        resultBlocks.push(renderMarkdownTable(currentTable));
-        currentTable = [];
+      // Non-math segment: split by safe HTML tags
+      const htmlParts = part.split(SAFE_HTML_TAG_REGEX);
+      for (const hPart of htmlParts) {
+        if (!hPart) continue;
+        if (SAFE_HTML_TAG_REGEX.test(hPart)) {
+          SAFE_HTML_TAG_REGEX.lastIndex = 0;
+          result.push(hPart);
+        } else {
+          SAFE_HTML_TAG_REGEX.lastIndex = 0;
+          let escaped = escapeText(hPart);
+          // For purely plain text (without HTML blocks), convert \n to <br />
+          if (!hasBlockHtml) {
+            escaped = escaped.replace(/\n/g, '<br />');
+          }
+          result.push(escaped);
+        }
       }
-      resultBlocks.push(renderMathSegment(line));
     }
   }
 
-  if (currentTable.length > 0) {
-    resultBlocks.push(renderMarkdownTable(currentTable));
-  }
-
-  let fullHtml = '';
-  for (let i = 0; i < resultBlocks.length; i++) {
-    const b = resultBlocks[i];
-    if (!b && b !== '') continue;
-    if (fullHtml === '') {
-      fullHtml = b;
-    } else {
-      const prevEndsWithDiv = fullHtml.endsWith('</div>');
-      const curStartsWithDiv = b.startsWith('<div');
-      if (prevEndsWithDiv || curStartsWithDiv) {
-        fullHtml += b;
-      } else {
-        fullHtml += '<br />' + b;
-      }
-    }
-  }
-  return fullHtml;
+  return result.join('');
 }
 
-export default function MathText({ text, className = '', as = 'span' }: MathTextProps) {
+export default function MathText({ text, className = '', as }: MathTextProps) {
   const html = useMemo(() => renderMathToHtml(text), [text]);
 
-  const Tag = as;
+  const hasBlock = useMemo(
+    () => HAS_BLOCK_HTML_REGEX.test(text || '') || (typeof text === 'string' && text.includes('\n')),
+    [text]
+  );
+  const Tag = as || (hasBlock ? 'div' : 'span');
+
   return (
     <Tag
-      className={className}
+      className={`math-content ${className}`.trim()}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
