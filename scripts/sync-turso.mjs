@@ -116,7 +116,7 @@ async function sync() {
 
   // 5. Sync questions in batches
   console.log('Syncing questions in batches...');
-  const batchSize = 50;
+  const batchSize = 40;
   for (let i = 0; i < questions.length; i += batchSize) {
     const chunk = questions.slice(i, i + batchSize);
     const statements = chunk.map(q => ({
@@ -133,8 +133,21 @@ async function sync() {
         q.time_minutes ?? 1, q.question_category ?? 'lecture'
       ]
     }));
-    await turso.batch(statements, 'write');
+
+    let attempts = 0;
+    while (attempts < 4) {
+      try {
+        await turso.batch(statements, 'write');
+        break;
+      } catch (err) {
+        attempts++;
+        if (attempts >= 4) throw err;
+        console.warn(`\n  Batch ${Math.floor(i / batchSize) + 1} failed (attempt ${attempts}/4). Retrying in ${attempts * 1500}ms...`);
+        await new Promise(r => setTimeout(r, attempts * 1500));
+      }
+    }
     process.stdout.write(`  Uploaded ${Math.min(i + batchSize, questions.length)} / ${questions.length} questions...\r`);
+    await new Promise(r => setTimeout(r, 60));
   }
 
   console.log('\nVerifying Turso row counts...');
